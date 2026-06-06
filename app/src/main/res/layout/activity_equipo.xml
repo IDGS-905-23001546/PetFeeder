@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/cream_bg">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="20dp"
+            android:paddingTop="28dp"
+            android:paddingBottom="20dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mi dispensador"
+                android:textColor="@color/text_primary"
+                android:textSize="26sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="24dp" />
+
+            <!-- ESTADO VACÍO -->
+            <LinearLayout
+                android:id="@+id/emptyState"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingVertical="32dp"
+                android:visibility="visible">
+
+                <ImageView
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:layout_marginBottom="16dp"
+                    android:src="@drawable/ic_nav_equipment"
+                    android:tint="#C8DAEE"
+                    android:contentDescription="@null" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Sin dispensador vinculado"
+                    android:textColor="@color/text_primary"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="6dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Vincula tu PawFeeder para controlar la alimentacion"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp"
+                    android:gravity="center"
+                    android:layout_marginBottom="28dp" />
+
+                <Button
+                    android:id="@+id/btnVincularEmpty"
+                    android:layout_width="wrap_content"
+                    android:layout_height="52dp"
+                    android:backgroundTint="@color/blue_primary"
+                    android:paddingHorizontal="32dp"
+                    android:text="Vincular dispensador"
+                    android:textColor="@color/white"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <!-- TARJETA DEL DISPOSITIVO -->
+            <LinearLayout
+                android:id="@+id/deviceCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:background="@drawable/bg_pet_card_dark"
+                android:orientation="vertical"
+                android:padding="20dp"
+                android:elevation="4dp"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <FrameLayout
+                        android:layout_width="52dp"
+                        android:layout_height="52dp"
+                        android:layout_marginEnd="14dp"
+                        android:background="@drawable/bg_badge_dark">
+                        <ImageView
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_bone"
+                            android:tint="#AACCEE"
+                            android:contentDescription="@null" />
+                    </FrameLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView
+                            android:id="@+id/tvDeviceName"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="PawFeeder Mini"
+                            android:textColor="@color/white"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/tvDeviceCode"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="PF-MINI · v1.0.0"
+                            android:textColor="@color/pet_card_text_light"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvEstadoBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_badge_connected"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="5dp"
+                        android:text="En linea"
+                        android:textColor="@color/white"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+                <!-- Stats: Batería | WiFi | Tolva -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="6dp"
+                        android:background="@drawable/bg_stat_box"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="10dp">
+                        <ImageView android:layout_width="18dp" android:layout_height="18dp" android:layout_marginBottom="4dp" android:src="@drawable/ic_battery" android:tint="@color/pet_card_text_light" android:contentDescription="@null" />
+                        <TextView android:id="@+id/tvBateriaValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="100%" android:textColor="@color/white" android:textSize="14sp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Bateria" android:textColor="@color/pet_card_text_light" android:textSize="10sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginHorizontal="3dp"
+                        android:background="@drawable/bg_stat_box"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="10dp">
+                        <ImageView android:layout_width="18dp" android:layout_height="18dp" android:layout_marginBottom="4dp" android:src="@drawable/ic_signal_wifi" android:tint="@color/pet_card_text_light" android:contentDescription="@null" />
+                        <TextView android:id="@+id/tvWifiValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Buena" android:textColor="@color/white" android:textSize="14sp" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="WiFi" android:textColor="@color/pet_card_text_light" android:textSize="10sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="6dp"
+                        android:background="@drawable/bg_stat_box"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="10dp">
+                        <ImageView android:layout_width="18dp" android:layout_height="18dp" android:layout_marginBottom="4dp" android:src="@drawable/ic_storage" android:tint="@color/pet_card_text_light" android:contentDescription="@null" />
+                        <TextView android:id="@+id/tvTolvaValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="2.4kg" android:textColor="@color/white" android:textSize="14sp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tolva" android:textColor="@color/pet_card_text_light" android:textSize="10sp" />
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- PASOS DE CONEXIÓN (siempre visibles) -->
+            <LinearLayout
+                android:id="@+id/stepsSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:background="@drawable/bg_white_card"
+                android:elevation="2dp"
+                android:orientation="vertical"
+                android:padding="20dp"
+                android:visibility="visible">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="¿Como conectar tu dispensador?"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Paso 1 -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="top" android:orientation="horizontal" android:layout_marginBottom="14dp">
+                    <TextView android:layout_width="26dp" android:layout_height="26dp" android:layout_marginEnd="12dp" android:layout_marginTop="1dp" android:background="@drawable/bg_step_number" android:gravity="center" android:text="1" android:textColor="@color/white" android:textSize="13sp" android:textStyle="bold" />
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Conecta el dispensador a la corriente y espera la luz azul." android:textColor="@color/text_primary" android:textSize="14sp" android:lineSpacingMultiplier="1.3" />
+                </LinearLayout>
+
+                <!-- Paso 2 -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="top" android:orientation="horizontal" android:layout_marginBottom="14dp">
+                    <TextView android:layout_width="26dp" android:layout_height="26dp" android:layout_marginEnd="12dp" android:layout_marginTop="1dp" android:background="@drawable/bg_step_number" android:gravity="center" android:text="2" android:textColor="@color/white" android:textSize="13sp" android:textStyle="bold" />
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Asegurate de que tu telefono este conectado al WiFi de casa (red 2.4 GHz)." android:textColor="@color/text_primary" android:textSize="14sp" android:lineSpacingMultiplier="1.3" />
+                </LinearLayout>
+
+                <!-- Paso 3 -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="top" android:orientation="horizontal" android:layout_marginBottom="14dp">
+                    <TextView android:layout_width="26dp" android:layout_height="26dp" android:layout_marginEnd="12dp" android:layout_marginTop="1dp" android:background="@drawable/bg_step_number" android:gravity="center" android:text="3" android:textColor="@color/white" android:textSize="13sp" android:textStyle="bold" />
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Toca Vincular dispensador e ingresa el codigo del dispositivo." android:textColor="@color/text_primary" android:textSize="14sp" android:lineSpacingMultiplier="1.3" />
+                </LinearLayout>
+
+                <!-- Paso 4 -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="top" android:orientation="horizontal">
+                    <TextView android:layout_width="26dp" android:layout_height="26dp" android:layout_marginEnd="12dp" android:layout_marginTop="1dp" android:background="@drawable/bg_step_number" android:gravity="center" android:text="4" android:textColor="@color/white" android:textSize="13sp" android:textStyle="bold" />
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="El dispensador se vinculara automaticamente a tu red WiFi." android:textColor="@color/text_primary" android:textSize="14sp" android:lineSpacingMultiplier="1.3" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- BOTÓN CONECTAR POR WIFI -->
+            <LinearLayout
+                android:id="@+id/btnConectarWifi"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/bg_connect_button"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:clickable="true"
+                android:focusable="true"
+                android:visibility="visible">
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:layout_marginEnd="12dp"
+                    android:src="@drawable/ic_signal_wifi"
+                    android:tint="@color/white"
+                    android:contentDescription="@null" />
+
+                <TextView
+                    android:id="@+id/tvBtnConectar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Vincular dispensador"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <!-- BOTÓN DESVINCULAR -->
+            <LinearLayout
+                android:id="@+id/btnDesvincular"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:background="@drawable/bg_desvincular_button"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:clickable="true"
+                android:focusable="true"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Desvincular dispositivo"
+                    android:textColor="#E74C3C"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNav"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        app:menu="@menu/bottom_nav"
+        app:itemIconTint="@color/nav_color_selector"
+        app:itemTextColor="@color/nav_color_selector"
+        app:labelVisibilityMode="labeled"
+        android:elevation="8dp" />
+
+</LinearLayout>

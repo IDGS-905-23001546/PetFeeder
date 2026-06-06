@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Backgrounds -->
+    <color name="cream_bg">#F5F0E8</color>
+    <color name="form_bg">#F5F0E8</color>
+    <color name="security_box_bg">#EDE4CF</color>
+    <color name="light_blue_bg">#EAF2FA</color>
+    <color name="card_bg">#FFFFFF</color>
+
+    <!-- Brand -->
+    <color name="blue_primary">#2C5F8A</color>
+    <color name="navy_dark">#1E3A5C</color>
+    <color name="amber">#E8A838</color>
+    <color name="amber_dark">#CC8A25</color>
+
+    <!-- Text -->
+    <color name="text_primary">#1A1A1A</color>
+    <color name="text_secondary">#6C757D</color>
+    <color name="text_hint">#ADB5BD</color>
+    <color name="pet_card_text_light">#AAC8E8</color>
+
+    <!-- Badges -->
+    <color name="badge_connected_bg">#3B7EC5</color>
+    <color name="badge_dark_bg">#2A4A6A</color>
+    <color name="orange_dot">#F4A830</color>
+
+    <!-- OTP -->
+    <color name="otp_empty">#DDD5C4</color>
+    <color name="otp_filled">#2C5F8A</color>
+
+    <!-- Navigation -->
+    <color name="nav_selected">#2C5F8A</color>
+    <color name="nav_unselected">#ADB5BD</color>
+
+    <!-- Borders -->
+    <color name="border_light">#E8E8E8</color>
+    <color name="divider">#F0EDE8</color>
+</resources>
