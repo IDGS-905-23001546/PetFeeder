@@ -1,5 +1,6 @@
 package com.petfeeder.app
 
+import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
 import android.os.CountDownTimer
@@ -61,7 +62,8 @@ class VerificarActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.btnVerificar).setOnClickListener {
             if (etOtp.text.toString().length == 6) {
-                // TODO: validar código con backend
+                startActivity(Intent(this, Principal::class.java))
+                finishAffinity()
             }
         }
     }
