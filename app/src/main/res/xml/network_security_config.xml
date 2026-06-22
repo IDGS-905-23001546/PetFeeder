@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!--
+        MODO DESARROLLO: permite tráfico HTTP (sin cifrar) en toda la app.
+        Necesario porque la API de desarrollo corre en HTTP (puerto 5172),
+        ya sea via emulador (10.0.2.2) o teléfono físico (IP de la PC en la WiFi).
+
+        ⚠️  En PRODUCCIÓN se debe usar HTTPS y poner cleartextTrafficPermitted="false".
+    -->
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>
