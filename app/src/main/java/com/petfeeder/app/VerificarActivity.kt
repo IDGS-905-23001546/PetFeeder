@@ -18,6 +18,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import android.widget.Toast
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 
 class VerificarActivity : AppCompatActivity() {
 
@@ -25,6 +28,8 @@ class VerificarActivity : AppCompatActivity() {
     private lateinit var etOtp: EditText
     private lateinit var tvSecurityText: TextView
     private var countDownTimer: CountDownTimer? = null
+
+    private var email: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,6 +40,9 @@ class VerificarActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
+        email = intent.getStringExtra("email") ?: ""
+
 
         digits = arrayOf(
             findViewById(R.id.otpDigit1),
@@ -61,9 +69,54 @@ class VerificarActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.btnVerificar).setOnClickListener {
-            if (etOtp.text.toString().length == 6) {
-                startActivity(Intent(this, Principal::class.java))
-                finishAffinity()
+            val codigo = etOtp.text.toString()
+            if (codigo.length != 6) {
+                Toast.makeText(this, "Ingresa los 6 dígitos", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            verificar(codigo)
+        }
+    }
+
+    private fun verificar(codigo: String) {
+        // Sin email no podemos verificar
+        if (email.isEmpty()){
+            Toast.makeText(this, "No se recibió el correo. Vuelve a registrarte.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val btnVerificar = findViewById<Button>(R.id.btnVerificar)
+        btnVerificar.isEnabled = false
+
+        lifecycleScope.launch {
+            try {
+                val response = RetrofitClient.api.verificar(VerificarRequest(email, codigo))
+
+                if (response.isSuccessful) {
+                    // Cuenta verificada -> mandamos a iniciar sesión
+                    Toast.makeText(
+                        this@VerificarActivity,
+                        "¡Cuenta verificada! Ya puedes iniciar sesión.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    startActivity(Intent(this@VerificarActivity, LoginActivity::class.java))
+                    finishAffinity()
+                } else {
+                    // 400 = código incorrecto, expirado o sin intentos
+                    Toast.makeText(
+                        this@VerificarActivity,
+                        "Código incorrecto o expirado.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this@VerificarActivity,
+                    "No se pudo conectar con el servidor. ¿Está corriendo la API?",
+                    Toast.LENGTH_LONG
+                ).show()
+            } finally {
+                btnVerificar.isEnabled = true
             }
         }
     }
