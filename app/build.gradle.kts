@@ -1,5 +1,35 @@
+import java.net.Inet4Address
+import java.net.NetworkInterface
+
 plugins {
     alias(libs.plugins.android.application)
+}
+
+/**
+ * Detecta automáticamente la IP local (WiFi/Ethernet) de esta PC al COMPILAR.
+ * Así la app queda apuntando a la IP actual sin escribir nada: cada vez que le
+ * das Run en Android Studio se hornea la IP vigente. Si cambias de red, solo
+ * vuelves a compilar. Ignora adaptadores virtuales (VirtualBox/VMware/etc.).
+ */
+fun detectarIpLocal(): String {
+    return try {
+        NetworkInterface.getNetworkInterfaces().toList()
+            .filter { it.isUp && !it.isLoopback && !it.isVirtual }
+            .filter {
+                val n = it.displayName.lowercase()
+                listOf("virtualbox", "vmware", "hyper-v", "loopback", "vethernet", "docker")
+                    .none { v -> n.contains(v) }
+            }
+            .flatMap { it.inetAddresses.toList() }
+            .filterIsInstance<Inet4Address>()
+            .firstOrNull {
+                it.isSiteLocalAddress &&
+                    it.hostAddress?.startsWith("192.168.56.") == false // salta la red por defecto de VirtualBox
+            }
+            ?.hostAddress ?: "10.0.2.2"
+    } catch (e: Exception) {
+        "10.0.2.2" // respaldo: localhost del emulador
+    }
 }
 
 android {
@@ -18,6 +48,13 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // IP de la PC detectada automáticamente al compilar -> la app la usa por defecto
+        buildConfigField("String", "API_BASE_URL", "\"http://${detectarIpLocal()}:5172/\"")
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {

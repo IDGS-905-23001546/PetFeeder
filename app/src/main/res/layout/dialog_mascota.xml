@@ -149,7 +149,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="6dp"
-                    android:text="Edad (años)"
+                    android:text="Edad"
                     android:textColor="@color/text_primary"
                     android:textSize="13sp"
                     android:textStyle="bold" />
@@ -159,18 +159,13 @@
                     android:layout_height="52dp"
                     android:background="@drawable/bg_input_field"
                     android:gravity="center_vertical"
-                    android:paddingHorizontal="16dp">
+                    android:paddingHorizontal="8dp">
 
-                    <EditText
-                        android:id="@+id/etMascotaEdad"
+                    <Spinner
+                        android:id="@+id/spinnerEdad"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:background="@null"
-                        android:hint="0"
-                        android:inputType="number"
-                        android:textColor="@color/text_primary"
-                        android:textColorHint="@color/text_hint"
-                        android:textSize="14sp" />
+                        android:layout_height="wrap_content"
+                        android:background="@null" />
 
                 </LinearLayout>
 
@@ -213,6 +208,46 @@
                 </LinearLayout>
 
             </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Tarjeta de recomendación (porción + proteína), calculada por raza+edad+peso -->
+        <LinearLayout
+            android:id="@+id/cardRecomendacion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/bg_total_card"
+            android:padding="14dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:letterSpacing="0.06"
+                android:text="PORCIÓN RECOMENDADA"
+                android:textColor="@color/text_secondary"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvPorcionRecomendada"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Completa raza, edad y peso"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvProteinaTip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text=""
+                android:textColor="@color/blue_primary"
+                android:textSize="12sp" />
 
         </LinearLayout>
 

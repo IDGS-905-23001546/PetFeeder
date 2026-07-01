@@ -11,30 +11,29 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 
-class DispensarManual : AppCompatActivity() {
+/**
+ * Dispensado MANUAL de agua. Espejo de DispensarManual.kt pero en ml y sobre
+ * la tabla nueva dispensaciones_agua. Mantener presionado 2s dispensa.
+ */
+class DispensarAguaManual : AppCompatActivity() {
 
     private lateinit var db: PawFeederDatabase
-    private var amountGrams = 120
-    private val presets = listOf(60, 120, 180)
+    private var amountMl = 200
     private var holdHandler: Handler? = null
     private var holdRunnable: Runnable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_dispensar_manual)
+        setContentView(R.layout.activity_dispensar_agua_manual)
 
         db = PawFeederDatabase(this)
 
-        setupBack()
+        findViewById<FrameLayout>(R.id.btnBack).setOnClickListener { finish() }
         loadMascotaInfo()
-        loadTolvaInfo()
+        loadEquipoInfo()
         setupAmountControls()
         setupHoldButton()
         runEntranceAnimations()
-    }
-
-    private fun setupBack() {
-        findViewById<FrameLayout>(R.id.btnBack).setOnClickListener { finish() }
     }
 
     private fun loadMascotaInfo() {
@@ -42,37 +41,31 @@ class DispensarManual : AppCompatActivity() {
         val tvSub = findViewById<TextView>(R.id.tvSubtitleDispensador)
         if (mascota != null) {
             tvSub.text = "Para ${mascota.nombre} · ${mascota.raza} ${mascota.pesoKg.toInt()} kg"
-            // Porción recomendada por edad + tamaño + peso (por comida)
-            val meses = if (mascota.edadMeses > 0) mascota.edadMeses else mascota.edadAnos * 12
-            val r = PorcionCalculator.calcular(mascota.tamano, meses, mascota.pesoKg)
-            amountGrams = r.gramosPorComida
         }
         updateAmountDisplay()
     }
 
-    private fun loadTolvaInfo() {
+    private fun loadEquipoInfo() {
         val dispensador = db.getDispensador()
-        val tvTolva = findViewById<TextView>(R.id.tvTolvaInfo)
-        if (dispensador != null) {
-            val kg = dispensador.tolvaKg
-            val comidas = (kg * 1000 / 120).toInt()
-            tvTolva.text = String.format("%.1f kg · ~%d comidas", kg, comidas)
+        val tvInfo = findViewById<TextView>(R.id.tvTolvaInfo)
+        tvInfo.text = if (dispensador != null) {
+            if (dispensador.estaEnLinea) "En línea" else "Fuera de línea"
         } else {
-            tvTolva.text = "Sin dispensador vinculado"
+            "Sin dispensador vinculado"
         }
     }
 
     private fun setupAmountControls() {
         val tvAmount = findViewById<TextView>(R.id.tvAmountValue)
-        val p60 = findViewById<TextView>(R.id.preset60)
-        val p120 = findViewById<TextView>(R.id.preset120)
-        val p180 = findViewById<TextView>(R.id.preset180)
+        val pA = findViewById<TextView>(R.id.presetA)
+        val pB = findViewById<TextView>(R.id.presetB)
+        val pC = findViewById<TextView>(R.id.presetC)
         val btnMinus = findViewById<FrameLayout>(R.id.btnMinus)
         val btnPlus = findViewById<FrameLayout>(R.id.btnPlus)
 
         fun updatePresets() {
-            listOf(p60 to 60, p120 to 120, p180 to 180).forEach { (tv, v) ->
-                val selected = amountGrams == v
+            listOf(pA to 100, pB to 200, pC to 300).forEach { (tv, v) ->
+                val selected = amountMl == v
                 tv.setBackgroundResource(
                     if (selected) R.drawable.bg_amount_preset_selected
                     else R.drawable.bg_amount_preset
@@ -82,18 +75,18 @@ class DispensarManual : AppCompatActivity() {
                     else getColor(R.color.text_secondary)
                 )
             }
-            tvAmount.text = amountGrams.toString()
+            tvAmount.text = amountMl.toString()
         }
 
-        p60.setOnClickListener { amountGrams = 60; updatePresets() }
-        p120.setOnClickListener { amountGrams = 120; updatePresets() }
-        p180.setOnClickListener { amountGrams = 180; updatePresets() }
+        pA.setOnClickListener { amountMl = 100; updatePresets() }
+        pB.setOnClickListener { amountMl = 200; updatePresets() }
+        pC.setOnClickListener { amountMl = 300; updatePresets() }
 
         btnMinus.setOnClickListener {
-            if (amountGrams > 10) { amountGrams -= 10; updatePresets() }
+            if (amountMl > 20) { amountMl -= 20; updatePresets() }
         }
         btnPlus.setOnClickListener {
-            if (amountGrams < 500) { amountGrams += 10; updatePresets() }
+            if (amountMl < 1000) { amountMl += 20; updatePresets() }
         }
 
         updatePresets()
@@ -101,7 +94,6 @@ class DispensarManual : AppCompatActivity() {
 
     private fun setupHoldButton() {
         val btn = findViewById<LinearLayout>(R.id.btnDispensarHold)
-
         btn.setOnTouchListener { v, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
@@ -138,50 +130,40 @@ class DispensarManual : AppCompatActivity() {
         val mascota = db.getActivaMascota()
         val nombreMascota = mascota?.nombre ?: "tu mascota"
 
-        // Sin IP configurada -> modo simulado (la app funciona aunque no haya hardware)
         if (!DeviceConfig.hasIp(this)) {
             registrarYSalir(nombreMascota, simulado = true)
             return
         }
 
-        // Con dispositivo -> mandar la orden real al ESP32
         Toast.makeText(this, "Enviando al dispensador...", Toast.LENGTH_SHORT).show()
         lifecycleScope.launch {
-            val r = DeviceClient.dispensarCroquetas(this@DispensarManual, amountGrams)
+            val r = DeviceClient.dispensarAgua(this@DispensarAguaManual, amountMl)
             if (r.exito) {
                 registrarYSalir(nombreMascota, simulado = false)
             } else {
-                Toast.makeText(this@DispensarManual, r.mensaje, Toast.LENGTH_LONG).show()
+                Toast.makeText(this@DispensarAguaManual, r.mensaje, Toast.LENGTH_LONG).show()
             }
         }
     }
 
     private fun registrarYSalir(nombreMascota: String, simulado: Boolean) {
         lifecycleScope.launch {
-            // 1. Historial local (caché)
-            db.insertDispensacion(
-                Dispensacion(
-                    tipo = "manual",
-                    nombre = "Manual",
-                    porcionGramos = amountGrams.toDouble()
-                )
-            )
-            // 2. Historial en petfeeder_db (best-effort)
+            db.insertDispensacionAgua("manual", "Manual", amountMl.toDouble())
             try {
-                RetrofitClient.api.crearDispensacion(
-                    DispensacionApi(
-                        usuarioId = UserSession.getId(this@DispensarManual),
+                RetrofitClient.api.crearDispensacionAgua(
+                    DispensacionAguaApi(
+                        usuarioId = UserSession.getId(this@DispensarAguaManual),
                         tipo = "manual",
                         nombre = "Manual",
-                        porcionGramos = amountGrams.toDouble()
+                        cantidadMl = amountMl.toDouble()
                     )
                 )
             } catch (_: Exception) {}
 
             val extra = if (simulado) " (simulado)" else ""
             Toast.makeText(
-                this@DispensarManual,
-                "¡${amountGrams}g dispensados para $nombreMascota!$extra",
+                this@DispensarAguaManual,
+                "¡${amountMl} ml de agua dispensados para $nombreMascota!$extra",
                 Toast.LENGTH_SHORT
             ).show()
             finish()
@@ -189,11 +171,11 @@ class DispensarManual : AppCompatActivity() {
     }
 
     private fun updateAmountDisplay() {
-        findViewById<TextView>(R.id.tvAmountValue)?.text = amountGrams.toString()
+        findViewById<TextView>(R.id.tvAmountValue)?.text = amountMl.toString()
     }
 
     private fun runEntranceAnimations() {
-        listOf(R.id.tvAmountValue, R.id.preset60, R.id.tvTolvaInfo, R.id.btnDispensarHold)
+        listOf(R.id.tvAmountValue, R.id.presetA, R.id.tvTolvaInfo, R.id.btnDispensarHold)
             .forEachIndexed { i, id ->
                 val v = findViewById<View>(id) ?: return@forEachIndexed
                 v.alpha = 0f

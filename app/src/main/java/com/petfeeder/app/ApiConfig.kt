@@ -1,25 +1,63 @@
 package com.petfeeder.app
 
+import android.content.Context
+
 /**
- * Configuración de la dirección de la API.
+ * Dirección de la API. CONFIGURABLE en tiempo de ejecución (pantalla de login ->
+ * "Configurar servidor"), para funcionar en emulador y en teléfono físico sin
+ * recompilar.
  *
- * ⚙️  CAMBIA AQUÍ la URL según dónde pruebes la app:
- *
- *  ┌────────────────────────────────────────────────────────────────────┐
- *  │ OPCIÓN 1 — EMULADOR de Android Studio (la de por defecto):          │
- *  │   "http://10.0.2.2:5172/"                                           │
- *  │   10.0.2.2 = el "localhost" de la PC donde corre el emulador.       │
- *  │                                                                     │
- *  │ OPCIÓN 2 — TELÉFONO FÍSICO en la misma red WiFi:                    │
- *  │   "http://IP_DE_TU_PC:5172/"   (ej. "http://192.168.1.50:5172/")    │
- *  │   - Averigua la IP con 'ipconfig' en Windows -> "Dirección IPv4".   │
- *  │   - El teléfono y la PC deben estar en la MISMA red WiFi.           │
- *  │   - Abre el Firewall de Windows para el puerto 5172.                │
- *  └────────────────────────────────────────────────────────────────────┘
- *
- *  NOTA: la API debe estar CORRIENDO en esa PC (en Visual Studio, F5).
+ *  EMULADOR:        http://10.0.2.2:5172/     (10.0.2.2 = localhost de la PC)
+ *  TELÉFONO FÍSICO: http://IP_DE_TU_PC:5172/  (ej. http://192.168.1.50:5172/)
+ *    - La IP la sacas con 'ipconfig' en Windows (IPv4).
+ *    - Teléfono y PC en la MISMA red WiFi + firewall abierto (5172).
+ *    - La API debe escuchar en 0.0.0.0 (ver launchSettings del proyecto API).
  */
 object ApiConfig {
 
-    const val BASE_URL = "http://10.0.2.2:5172/"
+    /** IP detectada al compilar (ver app/build.gradle.kts). Se refresca en cada build. */
+    val DEFAULT_BASE_URL: String = BuildConfig.API_BASE_URL
+
+    private const val PREFS = "pawfeeder_api"
+    private const val KEY_URL = "base_url"
+    private const val KEY_MANUAL = "override_manual"
+
+    /**
+     * URL actual de la API (siempre termina en "/").
+     * Por defecto usa la IP detectada al compilar (BuildConfig); solo usa una URL
+     * guardada si el usuario la puso a mano en "Configurar servidor".
+     */
+    fun getBaseUrl(ctx: Context): String {
+        val prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val manual = prefs.getBoolean(KEY_MANUAL, false)
+        return if (manual) {
+            normalizar(prefs.getString(KEY_URL, DEFAULT_BASE_URL) ?: DEFAULT_BASE_URL)
+        } else {
+            normalizar(DEFAULT_BASE_URL)   // IP fresca de cada compilación
+        }
+    }
+
+    /** Guarda una URL manual (marca override). Usado solo desde "Configurar servidor". */
+    fun setBaseUrl(ctx: Context, url: String) {
+        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .putString(KEY_URL, normalizar(url))
+            .putBoolean(KEY_MANUAL, true)
+            .apply()
+    }
+
+    /** Vuelve a usar la IP automática del build (quita el override manual). */
+    fun usarAutomatica(ctx: Context) {
+        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .putBoolean(KEY_MANUAL, false)
+            .apply()
+    }
+
+    /** Asegura prefijo http:// y barra final. */
+    private fun normalizar(raw: String): String {
+        var u = raw.trim()
+        if (u.isEmpty()) return DEFAULT_BASE_URL
+        if (!u.startsWith("http://") && !u.startsWith("https://")) u = "http://$u"
+        if (!u.endsWith("/")) u = "$u/"
+        return u
+    }
 }

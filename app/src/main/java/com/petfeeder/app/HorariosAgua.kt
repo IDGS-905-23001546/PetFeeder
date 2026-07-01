@@ -2,7 +2,6 @@ package com.petfeeder.app
 
 import android.app.TimePickerDialog
 import android.content.Intent
-import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
 import android.view.Gravity
@@ -13,11 +12,18 @@ import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.materialswitch.MaterialSwitch
 import kotlinx.coroutines.launch
 
-class Horarios : AppCompatActivity() {
+/**
+ * Módulo de HORARIOS DE AGUA. Es idéntico en funcionamiento al de comida
+ * (Horarios.kt) pero trabaja sobre la tabla nueva horarios_agua y mide en ml.
+ *
+ * Se abre desde el botón flotante de la pantalla Horarios. Incluye su propio
+ * botón flotante que abre la pantalla de dispensar agua manual.
+ */
+class HorariosAgua : AppCompatActivity() {
 
     private lateinit var db: PawFeederDatabase
     private lateinit var horariosContainer: LinearLayout
@@ -27,24 +33,23 @@ class Horarios : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_horarios)
+        setContentView(R.layout.activity_horarios_agua)
 
         db = PawFeederDatabase(this)
-        horariosContainer = findViewById(R.id.horariosContainer)
-        emptyState = findViewById(R.id.emptyState)
-        btnNuevoHorario = findViewById(R.id.btnNuevoHorario)
-        cardTotalDiario = findViewById(R.id.cardTotalDiario)
+        horariosContainer = findViewById(R.id.horariosAguaContainer)
+        emptyState = findViewById(R.id.emptyStateAgua)
+        btnNuevoHorario = findViewById(R.id.btnNuevoHorarioAgua)
+        cardTotalDiario = findViewById(R.id.cardTotalDiarioAgua)
 
-        setupBottomNav()
+        findViewById<FrameLayout>(R.id.btnBackAgua).setOnClickListener { finish() }
+
+        // Botón flotante -> dispensar agua manualmente
+        findViewById<FloatingActionButton>(R.id.fabDispensarAgua).setOnClickListener {
+            startActivity(Intent(this, DispensarAguaManual::class.java))
+        }
+
         setupAddButtons()
         loadHorarios()
-
-        // Botón flotante -> módulo de Horarios de Agua
-        findViewById<com.google.android.material.floatingactionbutton.FloatingActionButton>(R.id.fabAgua)
-            .setOnClickListener {
-                startActivity(Intent(this, HorariosAgua::class.java))
-                overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
-            }
     }
 
     override fun onResume() {
@@ -57,21 +62,21 @@ class Horarios : AppCompatActivity() {
     private fun loadHorarios() {
         val userId = UserSession.getId(this)
         lifecycleScope.launch {
-            val horarios: List<Horario> = try {
-                val resp = RetrofitClient.api.getHorarios(userId)
+            val horarios: List<HorarioAgua> = try {
+                val resp = RetrofitClient.api.getHorariosAgua(userId)
                 if (resp.isSuccessful && resp.body() != null) {
-                    val lista = resp.body()!!.map { it.toHorario() }
-                    db.replaceAllHorarios(lista)   // refresca caché
+                    val lista = resp.body()!!.map { it.toHorarioAgua() }
+                    db.replaceAllHorariosAgua(lista)
                     lista
-                } else db.getAllHorarios()
+                } else db.getAllHorariosAgua()
             } catch (e: Exception) {
-                db.getAllHorarios()                // offline -> caché
+                db.getAllHorariosAgua()
             }
             renderHorarios(horarios)
         }
     }
 
-    private fun renderHorarios(horarios: List<Horario>) {
+    private fun renderHorarios(horarios: List<HorarioAgua>) {
         horariosContainer.removeAllViews()
 
         if (horarios.isEmpty()) {
@@ -99,18 +104,17 @@ class Horarios : AppCompatActivity() {
             updateTotal(horarios)
         }
 
-        // Subtítulo con mascota activa
         val mascotaActiva = db.getActivaMascota()
         if (mascotaActiva != null) {
-            findViewById<TextView>(R.id.tvSubtitleHorarios)?.text =
-                "Programa las comidas de ${mascotaActiva.nombre}"
+            findViewById<TextView>(R.id.tvSubtitleAgua)?.text =
+                "Programa el agua de ${mascotaActiva.nombre}"
         }
 
         // Reprograma las alarmas de dispensado con los horarios actuales
         FeedScheduler.rescheduleAll(this)
     }
 
-    private fun inflateHorarioItem(horario: Horario): View {
+    private fun inflateHorarioItem(horario: HorarioAgua): View {
         val view = LayoutInflater.from(this)
             .inflate(R.layout.item_horario, horariosContainer, false)
 
@@ -123,22 +127,15 @@ class Horarios : AppCompatActivity() {
         val btnDelete = view.findViewById<ImageView>(R.id.btnDeleteHorario)
 
         tvNombre.text = horario.nombre
-        tvInfo.text = "${horario.hora} · ${horario.porcionGramos.toInt()}g"
+        tvInfo.text = "${horario.hora} · ${horario.cantidadMl.toInt()} ml"
         switchActivo.isChecked = horario.activo
         view.alpha = if (horario.activo) 1f else 0.55f
 
-        // Ícono según nombre
-        if (horario.nombre.equals("cena", ignoreCase = true)) {
-            ivIcon.setImageResource(R.drawable.ic_moon)
-            ivIcon.setColorFilter(getColor(R.color.blue_primary))
-            iconBg.setBackgroundResource(R.drawable.bg_icon_circle_blue)
-        } else {
-            ivIcon.setImageResource(R.drawable.ic_sun)
-            ivIcon.setColorFilter(Color.parseColor("#C68A00"))
-            iconBg.setBackgroundResource(R.drawable.bg_icon_circle_cream)
-        }
+        // Todos los horarios de agua usan el ícono de gota azul
+        ivIcon.setImageResource(R.drawable.ic_water)
+        ivIcon.setColorFilter(getColor(R.color.blue_primary))
+        iconBg.setBackgroundResource(R.drawable.bg_icon_circle_blue)
 
-        // Fila de días
         val dias = listOf(
             "L" to horario.lunes,
             "M" to horario.martes,
@@ -169,26 +166,24 @@ class Horarios : AppCompatActivity() {
             diasRow.addView(tv)
         }
 
-        // Toggle activo/inactivo (API + caché)
         switchActivo.setOnCheckedChangeListener { _, isChecked ->
             view.animate().alpha(if (isChecked) 1f else 0.55f).setDuration(250).start()
             lifecycleScope.launch {
-                try { RetrofitClient.api.activoHorario(horario.id, isChecked) } catch (_: Exception) {}
-                db.updateHorarioActivo(horario.id, isChecked)   // mantiene la caché al día
-                updateTotal(db.getAllHorarios())
-                FeedScheduler.rescheduleAll(this@Horarios)
+                try { RetrofitClient.api.activoHorarioAgua(horario.id, isChecked) } catch (_: Exception) {}
+                db.updateHorarioAguaActivo(horario.id, isChecked)
+                updateTotal(db.getAllHorariosAgua())
+                FeedScheduler.rescheduleAll(this@HorariosAgua)
             }
         }
 
-        // Eliminar (API + caché)
         btnDelete.setOnClickListener {
             AlertDialog.Builder(this)
                 .setTitle("Eliminar horario")
-                .setMessage("¿Eliminar el horario \"${horario.nombre}\"?")
+                .setMessage("¿Eliminar el horario de agua \"${horario.nombre}\"?")
                 .setPositiveButton("Eliminar") { _, _ ->
                     lifecycleScope.launch {
-                        try { RetrofitClient.api.borrarHorario(horario.id) } catch (_: Exception) {}
-                        db.deleteHorario(horario.id)
+                        try { RetrofitClient.api.borrarHorarioAgua(horario.id) } catch (_: Exception) {}
+                        db.deleteHorarioAgua(horario.id)
                         loadHorarios()
                     }
                 }
@@ -199,19 +194,15 @@ class Horarios : AppCompatActivity() {
         return view
     }
 
-    private fun updateTotal(horarios: List<Horario>) {
-        val total = horarios.filter { it.activo }.sumOf { it.porcionGramos }.toInt()
+    private fun updateTotal(horarios: List<HorarioAgua>) {
+        val total = horarios.filter { it.activo }.sumOf { it.cantidadMl }.toInt()
         val mascota = db.getActivaMascota()
-        val recomendado = when (mascota?.tamano) {
-            "pequeño" -> 80
-            "mediano" -> 180
-            "grande" -> 280
-            "gigante" -> 450
-            else -> 320
-        }
-        findViewById<TextView>(R.id.tvTotalGramsSchedule)?.text = "${total}g"
-        findViewById<TextView>(R.id.tvRecomendado)?.text = "/ ${recomendado}g recomendados"
-        val progress = findViewById<ProgressBar>(R.id.progressDaily)
+        // Necesidad de agua aproximada: ~55 ml por kg de peso al día
+        val recomendado = if (mascota != null && mascota.pesoKg > 0)
+            (mascota.pesoKg * 55).toInt() else 500
+        findViewById<TextView>(R.id.tvTotalMlSchedule)?.text = "$total ml"
+        findViewById<TextView>(R.id.tvRecomendadoAgua)?.text = "/ $recomendado ml recomendados"
+        val progress = findViewById<ProgressBar>(R.id.progressDailyAgua)
         progress?.max = recomendado
         progress?.progress = total.coerceAtMost(recomendado)
     }
@@ -220,7 +211,7 @@ class Horarios : AppCompatActivity() {
 
     private fun setupAddButtons() {
         btnNuevoHorario.setOnClickListener { showHorarioDialog() }
-        findViewById<Button>(R.id.btnAgregarEmpty)?.setOnClickListener { showHorarioDialog() }
+        findViewById<Button>(R.id.btnAgregarEmptyAgua)?.setOnClickListener { showHorarioDialog() }
     }
 
     private fun showHorarioDialog() {
@@ -230,7 +221,7 @@ class Horarios : AppCompatActivity() {
         val spinnerNombre = dialogView.findViewById<Spinner>(R.id.spinnerNombreHorario)
         val btnHora = dialogView.findViewById<LinearLayout>(R.id.btnSeleccionarHora)
         val tvHora = dialogView.findViewById<TextView>(R.id.tvHoraSeleccionada)
-        val etGramos = dialogView.findViewById<EditText>(R.id.etPorcionGramos)
+        val etCantidad = dialogView.findViewById<EditText>(R.id.etPorcionGramos)
         val cbLunes = dialogView.findViewById<CheckBox>(R.id.cbLunes)
         val cbMartes = dialogView.findViewById<CheckBox>(R.id.cbMartes)
         val cbMiercoles = dialogView.findViewById<CheckBox>(R.id.cbMiercoles)
@@ -239,17 +230,14 @@ class Horarios : AppCompatActivity() {
         val cbSabado = dialogView.findViewById<CheckBox>(R.id.cbSabado)
         val cbDomingo = dialogView.findViewById<CheckBox>(R.id.cbDomingo)
 
-        val nombres = listOf("Desayuno", "Almuerzo", "Cena", "Snack", "Otro")
+        // Sugerencia de cantidad en ml (el campo de layout dice "gramos", aquí es ml)
+        etCantidad.hint = "Cantidad en ml"
+        etCantidad.setText("200")
+
+        val nombres = listOf("Mañana", "Mediodía", "Tarde", "Noche", "Otro")
         spinnerNombre.adapter = ArrayAdapter(
             this, android.R.layout.simple_spinner_item, nombres
         ).also { it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
-
-        // Prellena la porción por comida recomendada según la mascota activa
-        db.getActivaMascota()?.let { m ->
-            val meses = if (m.edadMeses > 0) m.edadMeses else m.edadAnos * 12
-            val r = PorcionCalculator.calcular(m.tamano, meses, m.pesoKg)
-            etGramos.setText(r.gramosPorComida.toString())
-        }
 
         var selectedHour = 8
         var selectedMinute = 0
@@ -263,7 +251,7 @@ class Horarios : AppCompatActivity() {
         }
 
         AlertDialog.Builder(this)
-            .setTitle("Nuevo horario")
+            .setTitle("Nuevo horario de agua")
             .setView(dialogView)
             .setPositiveButton("Guardar") { _, _ ->
                 if (!cbLunes.isChecked && !cbMartes.isChecked && !cbMiercoles.isChecked &&
@@ -273,9 +261,9 @@ class Horarios : AppCompatActivity() {
                     Toast.makeText(this, "Selecciona al menos un día", Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
-                val gramos = etGramos.text.toString().toDoubleOrNull() ?: 100.0
-                guardarHorario(
-                    Horario(
+                val ml = etCantidad.text.toString().toDoubleOrNull() ?: 200.0
+                guardarHorarioAgua(
+                    HorarioAgua(
                         nombre = spinnerNombre.selectedItem.toString(),
                         hora = formatHora(selectedHour, selectedMinute),
                         lunes = cbLunes.isChecked,
@@ -285,7 +273,7 @@ class Horarios : AppCompatActivity() {
                         viernes = cbViernes.isChecked,
                         sabado = cbSabado.isChecked,
                         domingo = cbDomingo.isChecked,
-                        porcionGramos = gramos
+                        cantidadMl = ml
                     )
                 )
             }
@@ -293,15 +281,15 @@ class Horarios : AppCompatActivity() {
             .show()
     }
 
-    /** Crea el horario en la API (petfeeder_db); si falla, lo guarda local. */
-    private fun guardarHorario(h: Horario) {
+    /** Crea el horario de agua en la API (petfeeder_db); si falla, lo guarda local. */
+    private fun guardarHorarioAgua(h: HorarioAgua) {
         val userId = UserSession.getId(this)
         lifecycleScope.launch {
             try {
-                val resp = RetrofitClient.api.crearHorario(h.toApi(userId))
-                if (!resp.isSuccessful) db.insertHorario(h)
+                val resp = RetrofitClient.api.crearHorarioAgua(h.toApi(userId))
+                if (!resp.isSuccessful) db.insertHorarioAgua(h)
             } catch (e: Exception) {
-                db.insertHorario(h)
+                db.insertHorarioAgua(h)
             }
             loadHorarios()
         }
@@ -315,27 +303,5 @@ class Horarios : AppCompatActivity() {
             else -> h
         }
         return String.format("%02d:%02d %s", displayH, m, amPm)
-    }
-
-    // ── NAVEGACIÓN ───────────────────────────────────────
-
-    private fun setupBottomNav() {
-        val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav)
-        bottomNav.selectedItemId = R.id.nav_schedule
-        bottomNav.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_schedule -> true
-                R.id.nav_home -> { navigateTo(Principal::class.java); false }
-                R.id.nav_pets -> { navigateTo(Mascotas::class.java); false }
-                R.id.nav_equipment -> { navigateTo(Equipo::class.java); false }
-                R.id.nav_profile -> { navigateTo(Perfil::class.java); false }
-                else -> false
-            }
-        }
-    }
-
-    private fun navigateTo(cls: Class<*>) {
-        startActivity(Intent(this, cls).apply { flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT })
-        overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
     }
 }

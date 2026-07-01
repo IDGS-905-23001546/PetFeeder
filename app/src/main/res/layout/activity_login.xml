@@ -303,6 +303,18 @@
 
             </LinearLayout>
 
+            <!-- Configurar servidor (IP de la API para teléfono físico) -->
+            <TextView
+                android:id="@+id/tvConfigServidor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="20dp"
+                android:padding="8dp"
+                android:text="⚙️ Configurar servidor"
+                android:textColor="#6C757D"
+                android:textSize="12sp" />
+
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

@@ -6,15 +6,9 @@
     android:layout_height="match_parent"
     android:background="@color/cream_bg">
 
-  <LinearLayout
-      android:layout_width="match_parent"
-      android:layout_height="match_parent"
-      android:orientation="vertical">
-
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_height="match_parent"
         android:fillViewport="true"
         android:scrollbars="none">
 
@@ -24,30 +18,50 @@
             android:orientation="vertical"
             android:paddingHorizontal="20dp"
             android:paddingTop="28dp"
-            android:paddingBottom="20dp">
+            android:paddingBottom="110dp">
+
+            <!-- Botón volver -->
+            <FrameLayout
+                android:id="@+id/btnBackAgua"
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:layout_marginBottom="14dp"
+                android:background="@drawable/bg_white_card_circle"
+                android:elevation="2dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_arrow_back"
+                    android:tint="@color/text_primary"
+                    android:contentDescription="Volver" />
+            </FrameLayout>
 
             <!-- Encabezado -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Horarios"
+                android:text="Horarios de Agua"
                 android:textColor="@color/text_primary"
                 android:textSize="26sp"
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/tvSubtitleHorarios"
+                android:id="@+id/tvSubtitleAgua"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:layout_marginBottom="24dp"
-                android:text="Programa las comidas automaticas"
+                android:text="Programa el suministro de agua"
                 android:textColor="@color/blue_primary"
                 android:textSize="13sp" />
 
             <!-- ===== ESTADO VACÍO ===== -->
             <LinearLayout
-                android:id="@+id/emptyState"
+                android:id="@+id/emptyStateAgua"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
@@ -59,14 +73,14 @@
                     android:layout_width="80dp"
                     android:layout_height="80dp"
                     android:layout_marginBottom="16dp"
-                    android:src="@drawable/ic_clock"
-                    android:tint="#C8DAEE"
+                    android:src="@drawable/ic_water"
+                    android:tint="#9CC4EC"
                     android:contentDescription="@null" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Sin horarios programados"
+                    android:text="Sin horarios de agua"
                     android:textColor="@color/text_primary"
                     android:textSize="17sp"
                     android:textStyle="bold"
@@ -75,14 +89,14 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Crea tu primer horario de alimentacion"
+                    android:text="Crea tu primer horario de agua"
                     android:textColor="@color/text_secondary"
                     android:textSize="13sp"
                     android:gravity="center"
                     android:layout_marginBottom="28dp" />
 
                 <Button
-                    android:id="@+id/btnAgregarEmpty"
+                    android:id="@+id/btnAgregarEmptyAgua"
                     android:layout_width="wrap_content"
                     android:layout_height="52dp"
                     android:backgroundTint="@color/blue_primary"
@@ -91,20 +105,19 @@
                     android:textColor="@color/white"
                     android:textSize="14sp"
                     android:textStyle="bold" />
-
             </LinearLayout>
 
-            <!-- ===== CONTENEDOR DINÁMICO DE HORARIOS ===== -->
+            <!-- ===== CONTENEDOR DINÁMICO ===== -->
             <LinearLayout
-                android:id="@+id/horariosContainer"
+                android:id="@+id/horariosAguaContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:visibility="gone" />
 
-            <!-- Botón nuevo horario (visible cuando hay horarios) -->
+            <!-- Botón nuevo horario -->
             <LinearLayout
-                android:id="@+id/btnNuevoHorario"
+                android:id="@+id/btnNuevoHorarioAgua"
                 android:layout_width="match_parent"
                 android:layout_height="58dp"
                 android:layout_marginBottom="20dp"
@@ -126,16 +139,15 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Nuevo horario"
+                    android:text="Nuevo horario de agua"
                     android:textColor="@color/blue_primary"
                     android:textSize="15sp"
                     android:textStyle="bold" />
-
             </LinearLayout>
 
-            <!-- Tarjeta Total Diario (visible cuando hay horarios) -->
+            <!-- Tarjeta Total Diario -->
             <LinearLayout
-                android:id="@+id/cardTotalDiario"
+                android:id="@+id/cardTotalDiarioAgua"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_total_card"
@@ -162,63 +174,47 @@
                     android:layout_marginBottom="12dp">
 
                     <TextView
-                        android:id="@+id/tvTotalGramsSchedule"
+                        android:id="@+id/tvTotalMlSchedule"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="0g"
+                        android:text="0 ml"
                         android:textColor="@color/text_primary"
                         android:textSize="28sp"
                         android:textStyle="bold" />
 
                     <TextView
-                        android:id="@+id/tvRecomendado"
+                        android:id="@+id/tvRecomendadoAgua"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="6dp"
-                        android:text="/ 320g recomendados"
+                        android:text="/ 500 ml recomendados"
                         android:textColor="@color/text_secondary"
                         android:textSize="13sp" />
-
                 </LinearLayout>
 
                 <ProgressBar
-                    android:id="@+id/progressDaily"
+                    android:id="@+id/progressDailyAgua"
                     style="?android:attr/progressBarStyleHorizontal"
                     android:layout_width="match_parent"
                     android:layout_height="8dp"
-                    android:max="320"
+                    android:max="500"
                     android:progress="0"
                     android:progressDrawable="@drawable/bg_progress_bar" />
-
             </LinearLayout>
 
         </LinearLayout>
-
     </ScrollView>
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNav"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/white"
-        app:menu="@menu/bottom_nav"
-        app:itemIconTint="@color/nav_color_selector"
-        app:itemTextColor="@color/nav_color_selector"
-        app:labelVisibilityMode="labeled"
-        android:elevation="8dp" />
-
-  </LinearLayout>
-
-    <!-- Botón esférico flotante: abre el módulo de Horarios de Agua -->
+    <!-- Botón flotante: dispensar agua manualmente -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabAgua"
+        android:id="@+id/fabDispensarAgua"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_marginEnd="20dp"
-        android:layout_marginBottom="90dp"
+        android:layout_marginBottom="24dp"
         android:src="@drawable/ic_water"
-        android:contentDescription="Horarios de agua"
+        android:contentDescription="Dispensar agua ahora"
         app:backgroundTint="@color/blue_primary"
         app:tint="@color/white"
         app:fabSize="normal"

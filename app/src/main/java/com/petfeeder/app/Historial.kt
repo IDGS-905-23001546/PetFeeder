@@ -9,6 +9,8 @@ import android.view.View
 import android.view.animation.DecelerateInterpolator
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -32,8 +34,36 @@ class Historial : AppCompatActivity() {
     }
 
     private fun loadHistorial() {
-        val dispensaciones = db.getAllDispensaciones()
+        val userId = UserSession.getId(this)
+        lifecycleScope.launch {
+            val dispensaciones: List<Dispensacion> = try {
+                val resp = RetrofitClient.api.getDispensaciones(userId)
+                if (resp.isSuccessful && resp.body() != null) {
+                    resp.body()!!.map { it.toLocalDispensacion() }
+                } else db.getAllDispensaciones()
+            } catch (e: Exception) {
+                db.getAllDispensaciones()   // offline -> historial local
+            }
+            renderHistorial(dispensaciones)
+        }
+    }
 
+    /** Convierte la fecha ISO del servidor ("2026-07-01T10:30:00...") a millis. */
+    private fun DispensacionApi.toLocalDispensacion(): Dispensacion {
+        val millis = try {
+            val limpia = (fechaHora ?: "").substringBefore('.').replace("Z", "")
+            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+                .parse(limpia)?.time ?: System.currentTimeMillis()
+        } catch (e: Exception) {
+            System.currentTimeMillis()
+        }
+        return Dispensacion(
+            id = id, tipo = tipo, nombre = nombre,
+            porcionGramos = porcionGramos, fechaHora = millis, estado = estado
+        )
+    }
+
+    private fun renderHistorial(dispensaciones: List<Dispensacion>) {
         if (dispensaciones.isEmpty()) {
             emptyState.visibility = View.VISIBLE
             container.visibility = View.GONE

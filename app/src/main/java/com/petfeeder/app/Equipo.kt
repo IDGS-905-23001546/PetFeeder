@@ -2,15 +2,16 @@ package com.petfeeder.app
 
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import kotlinx.coroutines.launch
 
 class Equipo : AppCompatActivity() {
 
@@ -163,17 +164,53 @@ class Equipo : AppCompatActivity() {
             return
         }
 
-        // Simular proceso de conexión WiFi
+        // Pedir/confirmar la IP del ESP32 (la muestra en el monitor serie al encender)
+        val input = EditText(this).apply {
+            hint = "IP del ESP32 (ej. 192.168.1.42)"
+            setText(DeviceConfig.getIp(this@Equipo))
+            inputType = InputType.TYPE_CLASS_TEXT
+            setPadding(48, 32, 48, 32)
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("Conectar por WiFi")
+            .setMessage("Escribe la IP que muestra el ESP32 al encender. El teléfono y el ESP32 deben estar en la MISMA red WiFi.")
+            .setView(input)
+            .setPositiveButton("Conectar") { _, _ ->
+                val ip = input.text.toString().trim()
+                if (ip.isEmpty()) {
+                    Toast.makeText(this, "Escribe la IP del dispositivo", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                DeviceConfig.setIp(this, ip)
+                probarConexion(dispensador)
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    /** Hace ping real al ESP32 (/status) para confirmar que responde. */
+    private fun probarConexion(dispensador: Dispensador) {
         val tvBtn = findViewById<TextView>(R.id.tvBtnConectar)
         tvBtn.text = "Conectando..."
         btnConectarWifi.isEnabled = false
 
-        Handler(Looper.getMainLooper()).postDelayed({
-            db.updateDispensadorEstado(dispensador.id, "activo")
+        lifecycleScope.launch {
+            val r = DeviceClient.consultarEstado(this@Equipo)
             btnConectarWifi.isEnabled = true
-            Toast.makeText(this, "${dispensador.nombre} conectado correctamente", Toast.LENGTH_SHORT).show()
+            if (r.exito) {
+                db.updateDispensadorEstado(dispensador.id, "activo")
+                Toast.makeText(this@Equipo, "¡Conectado al dispositivo!", Toast.LENGTH_SHORT).show()
+            } else {
+                db.updateDispensadorEstado(dispensador.id, "offline")
+                Toast.makeText(
+                    this@Equipo,
+                    "No respondió. Revisa la IP y que estén en la misma WiFi.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
             loadDispensador()
-        }, 2000)
+        }
     }
 
     private fun confirmarDesvincular() {

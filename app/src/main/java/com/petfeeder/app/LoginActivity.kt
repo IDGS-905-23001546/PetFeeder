@@ -38,6 +38,35 @@ class LoginActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.tvRegister).setOnClickListener {
             startActivity(Intent(this, RegistrarActivity::class.java))
         }
+
+        findViewById<TextView>(R.id.tvConfigServidor).setOnClickListener {
+            mostrarConfigServidor()
+        }
+    }
+
+    /** Diálogo para escribir la IP/URL de la API (emulador o teléfono físico). */
+    private fun mostrarConfigServidor() {
+        val input = android.widget.EditText(this).apply {
+            hint = "http://192.168.1.50:5172/"
+            setText(ApiConfig.getBaseUrl(this@LoginActivity))
+            setPadding(48, 32, 48, 32)
+        }
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Servidor de la API")
+            .setMessage("Automático (recomendado): usa la IP de tu PC detectada al compilar.\n\nSolo escribe una IP si quieres forzar otra: http://IP:5172/")
+            .setView(input)
+            .setPositiveButton("Guardar manual") { _, _ ->
+                ApiConfig.setBaseUrl(this, input.text.toString())
+                RetrofitClient.init(this)   // aplica la nueva URL de inmediato
+                Toast.makeText(this, "Servidor: ${ApiConfig.getBaseUrl(this)}", Toast.LENGTH_LONG).show()
+            }
+            .setNeutralButton("Usar automático") { _, _ ->
+                ApiConfig.usarAutomatica(this)
+                RetrofitClient.init(this)
+                Toast.makeText(this, "Automático: ${ApiConfig.getBaseUrl(this)}", Toast.LENGTH_LONG).show()
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 
     private fun iniciarSesion() {
@@ -61,7 +90,7 @@ class LoginActivity : AppCompatActivity() {
                 if (response.isSuccessful) {
                     // Login correcto: la API devolvió los datos del usuario
                     val usuario = response.body()!!
-                    UserSession.save(this@LoginActivity, usuario.nombre, usuario.email)
+                    UserSession.save(this@LoginActivity, usuario.id, usuario.nombre, usuario.email)
 
                     Toast.makeText(
                         this@LoginActivity,
