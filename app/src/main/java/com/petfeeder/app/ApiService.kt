@@ -20,6 +20,9 @@ interface ApiService {
     @POST("api/auth/login")
     suspend fun login(@Body body: LoginRequest): Response<UsuarioResponse>
 
+    @POST("api/auth/reenviar")
+    suspend fun reenviar(@Body body: ReenviarRequest): Response<RespuestaResponse>
+
     // ── MASCOTAS (petfeeder_db) ───────────────────────────
     @GET("api/mascotas/usuario/{usuarioId}")
     suspend fun getMascotas(@Path("usuarioId") usuarioId: Int): Response<List<MascotaApi>>

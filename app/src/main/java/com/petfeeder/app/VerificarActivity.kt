@@ -62,11 +62,7 @@ class VerificarActivity : AppCompatActivity() {
         findViewById<LinearLayout>(R.id.otpContainer).setOnClickListener { showKeyboard() }
         digits.forEach { it.setOnClickListener { showKeyboard() } }
 
-        findViewById<TextView>(R.id.tvReenviar).setOnClickListener {
-            countDownTimer?.cancel()
-            etOtp.setText("")
-            startCountdown(300_000L)
-        }
+        findViewById<TextView>(R.id.tvReenviar).setOnClickListener { reenviarCodigo() }
 
         findViewById<Button>(R.id.btnVerificar).setOnClickListener {
             val codigo = etOtp.text.toString()
@@ -117,6 +113,46 @@ class VerificarActivity : AppCompatActivity() {
                 ).show()
             } finally {
                 btnVerificar.isEnabled = true
+            }
+        }
+    }
+
+    /** Pide a la API un código OTP nuevo y reinicia el contador. */
+    private fun reenviarCodigo() {
+        if (email.isEmpty()) {
+            Toast.makeText(this, "No se recibió el correo. Vuelve a registrarte.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val tvReenviar = findViewById<TextView>(R.id.tvReenviar)
+        tvReenviar.isEnabled = false
+
+        lifecycleScope.launch {
+            try {
+                val response = RetrofitClient.api.reenviar(ReenviarRequest(email))
+                if (response.isSuccessful) {
+                    etOtp.setText("")
+                    countDownTimer?.cancel()
+                    startCountdown(300_000L)
+                    Toast.makeText(
+                        this@VerificarActivity,
+                        "Te enviamos un nuevo código a tu correo.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    Toast.makeText(
+                        this@VerificarActivity,
+                        "No se pudo reenviar el código.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this@VerificarActivity,
+                    "No se pudo conectar con el servidor. ¿Está corriendo la API?",
+                    Toast.LENGTH_LONG
+                ).show()
+            } finally {
+                tvReenviar.isEnabled = true
             }
         }
     }

@@ -19,6 +19,10 @@ data class VerificarRequest(
     val codigo: String
 )
 
+data class ReenviarRequest(
+    val email: String
+)
+
 // ===== RESPONSES (lo que RECIBIMOS de la API) =====
 
 data class RespuestaResponse(

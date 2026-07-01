@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Permite compartir/abrir archivos guardados en la cache (ej. el manual PDF) -->
+    <cache-path name="cache_files" path="." />
+</paths>

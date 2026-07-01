@@ -37,8 +37,14 @@ class Perfil : AppCompatActivity() {
             startActivity(Intent(this, Historial::class.java))
             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
         }
-        // Los siguientes son pantallas futuras — placeholder
-        listOf(R.id.menuCompartir, R.id.menuNotificaciones, R.id.menuSeguridad, R.id.menuAyuda)
+        // Ayuda y soporte -> módulo de Contacto
+        findViewById<LinearLayout>(R.id.menuAyuda).setOnClickListener {
+            startActivity(Intent(this, Contacto::class.java))
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+        }
+
+        // Los siguientes siguen como pantallas futuras — placeholder
+        listOf(R.id.menuCompartir, R.id.menuNotificaciones, R.id.menuSeguridad)
             .forEach { id ->
                 findViewById<LinearLayout>(id).setOnClickListener {
                     // TODO: implementar
