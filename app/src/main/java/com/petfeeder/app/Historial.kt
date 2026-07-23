@@ -36,14 +36,16 @@ class Historial : AppCompatActivity() {
     private fun loadHistorial() {
         val userId = UserSession.getId(this)
         lifecycleScope.launch {
+            LoadingDialog.show(supportFragmentManager, "Cargando historial...")
             val dispensaciones: List<Dispensacion> = try {
                 val resp = RetrofitClient.api.getDispensaciones(userId)
                 if (resp.isSuccessful && resp.body() != null) {
                     resp.body()!!.map { it.toLocalDispensacion() }
                 } else db.getAllDispensaciones()
             } catch (e: Exception) {
-                db.getAllDispensaciones()   // offline -> historial local
+                db.getAllDispensaciones()
             }
+            LoadingDialog.dismiss(supportFragmentManager)
             renderHistorial(dispensaciones)
         }
     }

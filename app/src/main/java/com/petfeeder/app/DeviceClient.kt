@@ -19,14 +19,11 @@ import java.util.concurrent.TimeUnit
  *   POST /tare                              -> pone la báscula en cero
  *
  * IMPORTANTE: el teléfono y el ESP32 deben estar en la MISMA red WiFi, y la IP
- * del ESP32 debe estar guardada (DeviceConfig). Como el prototipo tiene un solo
- * actuador (servo + báscula), el agua se manda al mismo endpoint /dispense; si
- * más adelante agregan una válvula aparte, basta cambiar WATER_PATH.
+ * del ESP32 debe estar guardada (DeviceConfig).
  */
 object DeviceClient {
 
     private const val DISPENSE_PATH = "/dispense"
-    private const val WATER_PATH = "/dispense"   // cambiar a "/dispense-water" si agregan válvula
     private const val STATUS_PATH = "/status"
 
     private val JSON = "application/json; charset=utf-8".toMediaType()
@@ -46,10 +43,6 @@ object DeviceClient {
     /** Ordena dispensar croquetas (gramos). Llamar desde una corrutina. */
     suspend fun dispensarCroquetas(ctx: Context, gramos: Int): Resultado =
         withContext(Dispatchers.IO) { postDispense(DeviceConfig.baseUrl(ctx), DISPENSE_PATH, gramos) }
-
-    /** Ordena dispensar agua (ml). Llamar desde una corrutina. */
-    suspend fun dispensarAgua(ctx: Context, ml: Int): Resultado =
-        withContext(Dispatchers.IO) { postDispense(DeviceConfig.baseUrl(ctx), WATER_PATH, ml) }
 
     /** Consulta el estado del dispositivo (para saber si está en línea). */
     suspend fun consultarEstado(ctx: Context): Resultado =

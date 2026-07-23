@@ -70,44 +70,6 @@ class PawFeederDatabase(context: Context) :
             )
         """.trimIndent())
 
-        // Tablas NUEVAS del módulo de AGUA
-        createWaterTables(db)
-    }
-
-    /**
-     * Crea las tablas del módulo de agua. Se llama tanto en onCreate (instalación
-     * nueva) como en onUpgrade (para las apps que ya tenían la BD v2 sin agua).
-     */
-    private fun createWaterTables(db: SQLiteDatabase) {
-        db.execSQL("""
-            CREATE TABLE IF NOT EXISTS horarios_agua (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                nombre TEXT NOT NULL,
-                icono TEXT DEFAULT 'water',
-                hora TEXT NOT NULL,
-                lunes INTEGER DEFAULT 0,
-                martes INTEGER DEFAULT 0,
-                miercoles INTEGER DEFAULT 0,
-                jueves INTEGER DEFAULT 0,
-                viernes INTEGER DEFAULT 0,
-                sabado INTEGER DEFAULT 0,
-                domingo INTEGER DEFAULT 0,
-                cantidad_ml REAL DEFAULT 200,
-                activo INTEGER DEFAULT 1,
-                created_at INTEGER
-            )
-        """.trimIndent())
-
-        db.execSQL("""
-            CREATE TABLE IF NOT EXISTS dispensaciones_agua (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                tipo TEXT NOT NULL,
-                nombre TEXT DEFAULT 'Manual',
-                cantidad_ml REAL NOT NULL,
-                fecha_hora INTEGER NOT NULL,
-                estado TEXT DEFAULT 'ejecutada'
-            )
-        """.trimIndent())
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -117,8 +79,7 @@ class PawFeederDatabase(context: Context) :
             } catch (_: Exception) {}
         }
         if (oldVersion < 3) {
-            // Migración v2 -> v3: agrega el módulo de agua
-            createWaterTables(db)
+            // Migración v2 -> v3: solo quedaba agua pero ya no se usa
         }
         if (oldVersion < 4) {
             // Migración v3 -> v4: edad en meses para el cálculo de porciones
@@ -420,99 +381,5 @@ class PawFeederDatabase(context: Context) :
         put("porcion_gramos", h.porcionGramos)
         put("activo", if (h.activo) 1 else 0)
         put("created_at", System.currentTimeMillis())
-    }
-
-    // ── HORARIOS DE AGUA ──────────────────────────────────
-
-    fun getAllHorariosAgua(): List<HorarioAgua> {
-        val list = mutableListOf<HorarioAgua>()
-        val cursor = readableDatabase.rawQuery(
-            "SELECT * FROM horarios_agua ORDER BY hora ASC", null
-        )
-        with(cursor) {
-            while (moveToNext()) {
-                list.add(
-                    HorarioAgua(
-                        id = getInt(getColumnIndexOrThrow("id")),
-                        nombre = getString(getColumnIndexOrThrow("nombre")),
-                        icono = getString(getColumnIndexOrThrow("icono")),
-                        hora = getString(getColumnIndexOrThrow("hora")),
-                        lunes = getInt(getColumnIndexOrThrow("lunes")) == 1,
-                        martes = getInt(getColumnIndexOrThrow("martes")) == 1,
-                        miercoles = getInt(getColumnIndexOrThrow("miercoles")) == 1,
-                        jueves = getInt(getColumnIndexOrThrow("jueves")) == 1,
-                        viernes = getInt(getColumnIndexOrThrow("viernes")) == 1,
-                        sabado = getInt(getColumnIndexOrThrow("sabado")) == 1,
-                        domingo = getInt(getColumnIndexOrThrow("domingo")) == 1,
-                        cantidadMl = getDouble(getColumnIndexOrThrow("cantidad_ml")),
-                        activo = getInt(getColumnIndexOrThrow("activo")) == 1
-                    )
-                )
-            }
-            close()
-        }
-        return list
-    }
-
-    fun insertHorarioAgua(h: HorarioAgua): Long =
-        writableDatabase.insert("horarios_agua", null, horarioAguaToValues(h))
-
-    /** Reemplaza la caché local de horarios de agua con la lista del servidor. */
-    fun replaceAllHorariosAgua(list: List<HorarioAgua>) {
-        val db = writableDatabase
-        db.beginTransaction()
-        try {
-            db.delete("horarios_agua", null, null)
-            for (h in list) {
-                val v = horarioAguaToValues(h).apply { put("id", h.id) }
-                db.insert("horarios_agua", null, v)
-            }
-            db.setTransactionSuccessful()
-        } finally {
-            db.endTransaction()
-        }
-    }
-
-    fun updateHorarioAguaActivo(id: Int, activo: Boolean) {
-        writableDatabase.update(
-            "horarios_agua",
-            ContentValues().apply { put("activo", if (activo) 1 else 0) },
-            "id = ?",
-            arrayOf(id.toString())
-        )
-    }
-
-    fun deleteHorarioAgua(id: Int) {
-        writableDatabase.delete("horarios_agua", "id = ?", arrayOf(id.toString()))
-    }
-
-    private fun horarioAguaToValues(h: HorarioAgua) = ContentValues().apply {
-        put("nombre", h.nombre)
-        put("icono", h.icono)
-        put("hora", h.hora)
-        put("lunes", if (h.lunes) 1 else 0)
-        put("martes", if (h.martes) 1 else 0)
-        put("miercoles", if (h.miercoles) 1 else 0)
-        put("jueves", if (h.jueves) 1 else 0)
-        put("viernes", if (h.viernes) 1 else 0)
-        put("sabado", if (h.sabado) 1 else 0)
-        put("domingo", if (h.domingo) 1 else 0)
-        put("cantidad_ml", h.cantidadMl)
-        put("activo", if (h.activo) 1 else 0)
-        put("created_at", System.currentTimeMillis())
-    }
-
-    // ── DISPENSACIONES DE AGUA ────────────────────────────
-
-    /** Registra un evento de dispensado de agua (manual o programado). */
-    fun insertDispensacionAgua(tipo: String, nombre: String, cantidadMl: Double): Long {
-        val values = ContentValues().apply {
-            put("tipo", tipo)
-            put("nombre", nombre)
-            put("cantidad_ml", cantidadMl)
-            put("fecha_hora", System.currentTimeMillis())
-            put("estado", "ejecutada")
-        }
-        return writableDatabase.insert("dispensaciones_agua", null, values)
     }
 }

@@ -30,11 +30,7 @@ class FeedAlarmReceiver : BroadcastReceiver() {
 
                 // 0. ¿El horario sigue existiendo y activo? Si no, no dispenses ni
                 //    reprogrames (así muere la alarma de un horario borrado/apagado)
-                val sigueActivo = if (tipo == "agua") {
-                    db.getAllHorariosAgua().any { it.id == id && it.activo }
-                } else {
-                    db.getAllHorarios().any { it.id == id && it.activo }
-                }
+                val sigueActivo = db.getAllHorarios().any { it.id == id && it.activo }
                 if (!sigueActivo) {
                     return@Thread   // el finally hace pending.finish()
                 }
@@ -48,18 +44,14 @@ class FeedAlarmReceiver : BroadcastReceiver() {
                 }
 
                 // 2. Registrar la dispensación programada en la BD local
-                if (tipo == "agua") {
-                    db.insertDispensacionAgua("programada", nombre, cantidad.toDouble())
-                } else {
-                    db.insertDispensacion(
-                        Dispensacion(
-                            tipo = "programada",
-                            nombre = nombre,
-                            porcionGramos = cantidad.toDouble(),
-                            estado = estado
-                        )
+                db.insertDispensacion(
+                    Dispensacion(
+                        tipo = "programada",
+                        nombre = nombre,
+                        porcionGramos = cantidad.toDouble(),
+                        estado = estado
                     )
-                }
+                )
 
                 // 3. Reprogramar la misma alarma para dentro de 7 días
                 val proximo = triggerAt + AlarmManager.INTERVAL_DAY * 7

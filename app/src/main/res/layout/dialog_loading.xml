@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:background="@drawable/bg_loading_dialog"
+        android:paddingHorizontal="40dp"
+        android:paddingVertical="32dp"
+        android:elevation="8dp">
+
+        <!-- Garra animada -->
+        <ImageView
+            android:id="@+id/ivPawLoading"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:src="@drawable/ic_paw_large"
+            android:contentDescription="@null" />
+
+        <!-- Texto "Cargando..." -->
+        <TextView
+            android:id="@+id/tvLoadingText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:text="Cargando..."
+            android:textColor="@color/text_primary"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.03" />
+
+    </LinearLayout>
+
+</FrameLayout>

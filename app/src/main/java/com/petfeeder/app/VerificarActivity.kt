@@ -9,6 +9,7 @@ import android.text.Spannable
 import android.text.SpannableString
 import android.text.TextWatcher
 import android.text.style.StyleSpan
+import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
@@ -83,6 +84,7 @@ class VerificarActivity : AppCompatActivity() {
 
         val btnVerificar = findViewById<Button>(R.id.btnVerificar)
         btnVerificar.isEnabled = false
+        LoadingDialog.show(supportFragmentManager, "Verificando...")
 
         lifecycleScope.launch {
             try {
@@ -90,14 +92,21 @@ class VerificarActivity : AppCompatActivity() {
 
                 if (response.isSuccessful) {
                     // Cuenta verificada -> mandamos a iniciar sesión
+                    LoadingDialog.dismiss(supportFragmentManager)
+
                     Toast.makeText(
                         this@VerificarActivity,
                         "¡Cuenta verificada! Ya puedes iniciar sesión.",
                         Toast.LENGTH_SHORT
                     ).show()
-                    startActivity(Intent(this@VerificarActivity, LoginActivity::class.java))
-                    finishAffinity()
+                    LoadingDialog.show(supportFragmentManager, "Redirigiendo...")
+                    findViewById<View>(android.R.id.content).postDelayed({
+                        LoadingDialog.dismiss(supportFragmentManager)
+                        startActivity(Intent(this@VerificarActivity, LoginActivity::class.java))
+                        finishAffinity()
+                    }, 500)
                 } else {
+                    LoadingDialog.dismiss(supportFragmentManager)
                     // 400 = código incorrecto, expirado o sin intentos
                     Toast.makeText(
                         this@VerificarActivity,
@@ -106,9 +115,10 @@ class VerificarActivity : AppCompatActivity() {
                     ).show()
                 }
             } catch (e: Exception) {
+                LoadingDialog.dismiss(supportFragmentManager)
                 Toast.makeText(
                     this@VerificarActivity,
-                    "No se pudo conectar con el servidor. ¿Está corriendo la API?",
+                    "No se pudo conectar con el servidor. Verifica que esté encendido.",
                     Toast.LENGTH_LONG
                 ).show()
             } finally {
@@ -125,11 +135,13 @@ class VerificarActivity : AppCompatActivity() {
         }
         val tvReenviar = findViewById<TextView>(R.id.tvReenviar)
         tvReenviar.isEnabled = false
+        LoadingDialog.show(supportFragmentManager, "Reenviando código...")
 
         lifecycleScope.launch {
             try {
                 val response = RetrofitClient.api.reenviar(ReenviarRequest(email))
                 if (response.isSuccessful) {
+                    LoadingDialog.dismiss(supportFragmentManager)
                     etOtp.setText("")
                     countDownTimer?.cancel()
                     startCountdown(300_000L)
@@ -139,6 +151,7 @@ class VerificarActivity : AppCompatActivity() {
                         Toast.LENGTH_SHORT
                     ).show()
                 } else {
+                    LoadingDialog.dismiss(supportFragmentManager)
                     Toast.makeText(
                         this@VerificarActivity,
                         "No se pudo reenviar el código.",
@@ -146,9 +159,10 @@ class VerificarActivity : AppCompatActivity() {
                     ).show()
                 }
             } catch (e: Exception) {
+                LoadingDialog.dismiss(supportFragmentManager)
                 Toast.makeText(
                     this@VerificarActivity,
-                    "No se pudo conectar con el servidor. ¿Está corriendo la API?",
+                    "No se pudo conectar con el servidor. Verifica que esté encendido.",
                     Toast.LENGTH_LONG
                 ).show()
             } finally {

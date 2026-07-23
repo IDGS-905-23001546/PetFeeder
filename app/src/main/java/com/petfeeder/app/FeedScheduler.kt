@@ -8,7 +8,7 @@ import android.os.Build
 import java.util.Calendar
 
 /**
- * Programa las alarmas para que el dispensador suelte comida/agua a la hora
+ * Programa las alarmas para que el dispensador suelte comida a la hora
  * de cada horario. Por cada horario activo y cada día marcado, crea una alarma
  * exacta que dispara FeedAlarmReceiver.
  *
@@ -17,7 +17,7 @@ import java.util.Calendar
  */
 object FeedScheduler {
 
-    const val EXTRA_TIPO = "tipo"        // "comida" | "agua"
+    const val EXTRA_TIPO = "tipo"        // "comida"
     const val EXTRA_ID = "horarioId"
     const val EXTRA_NOMBRE = "nombre"
     const val EXTRA_CANTIDAD = "cantidad"
@@ -42,15 +42,6 @@ object FeedScheduler {
                     h.porcionGramos.toInt(), h.hora, idx)
             }
         }
-
-        // Horarios de AGUA
-        db.getAllHorariosAgua().filter { it.activo }.forEach { h ->
-            val dias = listOf(h.lunes, h.martes, h.miercoles, h.jueves, h.viernes, h.sabado, h.domingo)
-            dias.forEachIndexed { idx, activo ->
-                if (activo) scheduleOne(ctx, am, "agua", h.id, h.nombre,
-                    h.cantidadMl.toInt(), h.hora, idx)
-            }
-        }
     }
 
     private fun scheduleOne(
@@ -59,8 +50,8 @@ object FeedScheduler {
     ) {
         val (hour, minute) = parseHora(hora12h) ?: return
         val triggerAt = nextTrigger(DIA_A_CALENDAR[diaIndex], hour, minute)
-        // Código único por tipo + id + día
-        val reqCode = (if (tipo == "agua") 2_000_000 else 1_000_000) + id * 10 + diaIndex
+        // Código único por id + día
+        val reqCode = 1_000_000 + id * 10 + diaIndex
 
         val pi = buildPendingIntent(ctx, tipo, id, nombre, cantidad, reqCode, triggerAt)
         setExact(am, triggerAt, pi)

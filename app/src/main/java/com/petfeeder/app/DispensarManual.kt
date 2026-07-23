@@ -145,9 +145,10 @@ class DispensarManual : AppCompatActivity() {
         }
 
         // Con dispositivo -> mandar la orden real al ESP32
-        Toast.makeText(this, "Enviando al dispensador...", Toast.LENGTH_SHORT).show()
+        LoadingDialog.show(supportFragmentManager, "Dispensando $amountGrams g...")
         lifecycleScope.launch {
             val r = DeviceClient.dispensarCroquetas(this@DispensarManual, amountGrams)
+            LoadingDialog.dismiss(supportFragmentManager)
             if (r.exito) {
                 registrarYSalir(nombreMascota, simulado = false)
             } else {
@@ -157,6 +158,7 @@ class DispensarManual : AppCompatActivity() {
     }
 
     private fun registrarYSalir(nombreMascota: String, simulado: Boolean) {
+        LoadingDialog.show(supportFragmentManager, "Registrando dispensación...")
         lifecycleScope.launch {
             // 1. Historial local (caché)
             db.insertDispensacion(
@@ -178,6 +180,7 @@ class DispensarManual : AppCompatActivity() {
                 )
             } catch (_: Exception) {}
 
+            LoadingDialog.dismiss(supportFragmentManager)
             val extra = if (simulado) " (simulado)" else ""
             Toast.makeText(
                 this@DispensarManual,

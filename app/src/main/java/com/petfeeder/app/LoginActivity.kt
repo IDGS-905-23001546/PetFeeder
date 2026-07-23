@@ -2,8 +2,12 @@ package com.petfeeder.app
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.method.HideReturnsTransformationMethod
+import android.text.method.PasswordTransformationMethod
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -18,6 +22,7 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var etEmail: EditText
     private lateinit var etPassword: EditText
     private lateinit var btnLogin: Button
+    private var passwordVisible = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,10 +38,27 @@ class LoginActivity : AppCompatActivity() {
         etPassword = findViewById(R.id.etPassword)
         btnLogin = findViewById(R.id.btnLogin)
 
+        // Toggle visibilidad de contraseña
+        findViewById<ImageView>(R.id.ivTogglePassword).setOnClickListener {
+            passwordVisible = !passwordVisible
+            if (passwordVisible) {
+                etPassword.transformationMethod = HideReturnsTransformationMethod.getInstance()
+                findViewById<ImageView>(R.id.ivTogglePassword).setImageResource(R.drawable.ic_eye_hidden)
+            } else {
+                etPassword.transformationMethod = PasswordTransformationMethod.getInstance()
+                findViewById<ImageView>(R.id.ivTogglePassword).setImageResource(R.drawable.ic_eye_visible)
+            }
+            etPassword.setSelection(etPassword.text.length)
+        }
+
         btnLogin.setOnClickListener { iniciarSesion() }
 
         findViewById<TextView>(R.id.tvRegister).setOnClickListener {
-            startActivity(Intent(this, RegistrarActivity::class.java))
+            LoadingDialog.show(supportFragmentManager, "Cargando...")
+            findViewById<View>(android.R.id.content).postDelayed({
+                LoadingDialog.dismiss(supportFragmentManager)
+                startActivity(Intent(this, RegistrarActivity::class.java))
+            }, 400)
         }
 
         findViewById<TextView>(R.id.tvConfigServidor).setOnClickListener {
@@ -81,6 +103,7 @@ class LoginActivity : AppCompatActivity() {
 
         // 2. Evitar doble clic mientras se procesa
         btnLogin.isEnabled = false
+        LoadingDialog.show(supportFragmentManager, "Iniciando sesión...")
 
         // 3. Llamar a la API en segundo plano (corrutina)
         lifecycleScope.launch {
@@ -92,6 +115,8 @@ class LoginActivity : AppCompatActivity() {
                     val usuario = response.body()!!
                     UserSession.save(this@LoginActivity, usuario.id, usuario.nombre, usuario.email)
 
+                    LoadingDialog.dismiss(supportFragmentManager)
+
                     Toast.makeText(
                         this@LoginActivity,
                         "Bienvenido, ${usuario.nombre}",
@@ -101,19 +126,21 @@ class LoginActivity : AppCompatActivity() {
                     startActivity(Intent(this@LoginActivity, Principal::class.java))
                     finish()
                 } else {
+                    LoadingDialog.dismiss(supportFragmentManager)
                     // Credenciales malas o cuenta sin verificar (401 / 400)
                     val mensaje = when (response.code()) {
                         401 -> "Correo o contraseña incorrectos."
-                        400 -> "Tu cuenta aún no está verificada."
-                        else -> "Error al iniciar sesión (${response.code()})."
+                        400 -> "Tu cuenta aún no está verificada. Revisa tu correo."
+                        else -> "Ocurrió un problema. Intenta de nuevo."
                     }
                     Toast.makeText(this@LoginActivity, mensaje, Toast.LENGTH_LONG).show()
                 }
             } catch (e: Exception) {
+                LoadingDialog.dismiss(supportFragmentManager)
                 // Sin conexión / API apagada
                 Toast.makeText(
                     this@LoginActivity,
-                    "No se pudo conectar con el servidor. ¿Está corriendo la API?",
+                    "No se pudo conectar con el servidor. Verifica que esté encendido.",
                     Toast.LENGTH_LONG
                 ).show()
             } finally {

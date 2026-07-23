@@ -7,6 +7,7 @@ import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -34,20 +35,28 @@ class Perfil : AppCompatActivity() {
 
     private fun setupMenu() {
         findViewById<LinearLayout>(R.id.menuHistorial).setOnClickListener {
-            startActivity(Intent(this, Historial::class.java))
-            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+            LoadingDialog.show(supportFragmentManager, "Cargando historial...")
+            findViewById<View>(android.R.id.content).postDelayed({
+                LoadingDialog.dismiss(supportFragmentManager)
+                startActivity(Intent(this, Historial::class.java))
+                overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+            }, 500)
         }
         // Ayuda y soporte -> módulo de Contacto
         findViewById<LinearLayout>(R.id.menuAyuda).setOnClickListener {
-            startActivity(Intent(this, Contacto::class.java))
-            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+            LoadingDialog.show(supportFragmentManager, "Cargando ayuda...")
+            findViewById<View>(android.R.id.content).postDelayed({
+                LoadingDialog.dismiss(supportFragmentManager)
+                startActivity(Intent(this, Contacto::class.java))
+                overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+            }, 500)
         }
 
         // Los siguientes siguen como pantallas futuras — placeholder
         listOf(R.id.menuCompartir, R.id.menuNotificaciones, R.id.menuSeguridad)
             .forEach { id ->
                 findViewById<LinearLayout>(id).setOnClickListener {
-                    // TODO: implementar
+                    Toast.makeText(this, "Proximamente...", Toast.LENGTH_SHORT).show()
                 }
             }
         findViewById<LinearLayout>(R.id.btnCerrarSesion).setOnClickListener {
@@ -60,12 +69,16 @@ class Perfil : AppCompatActivity() {
             .setTitle("Cerrar sesion")
             .setMessage("¿Seguro que deseas cerrar sesion?")
             .setPositiveButton("Cerrar sesion") { _, _ ->
-                UserSession.clear(this)
-                val intent = Intent(this, LoginActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                }
-                startActivity(intent)
-                overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+                LoadingDialog.show(supportFragmentManager, "Cerrando sesión...")
+                findViewById<View>(android.R.id.content).postDelayed({
+                    UserSession.clear(this)
+                    LoadingDialog.dismiss(supportFragmentManager)
+                    val intent = Intent(this, LoginActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    }
+                    startActivity(intent)
+                    overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+                }, 600)
             }
             .setNegativeButton("Cancelar", null)
             .show()
@@ -100,7 +113,11 @@ class Perfil : AppCompatActivity() {
     }
 
     private fun navigateTo(cls: Class<*>) {
-        startActivity(Intent(this, cls).apply { flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT })
-        overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+        LoadingDialog.show(supportFragmentManager, "Cargando...")
+        findViewById<View>(android.R.id.content).postDelayed({
+            LoadingDialog.dismiss(supportFragmentManager)
+            startActivity(Intent(this, cls).apply { flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT })
+            overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+        }, 500)
     }
 }

@@ -73,18 +73,20 @@ class Mascotas : AppCompatActivity() {
     private fun loadMascotas() {
         val userId = UserSession.getId(this)
         lifecycleScope.launch {
+            LoadingDialog.show(supportFragmentManager, "Cargando mascotas...")
             val pets: List<Mascota> = try {
                 val resp = RetrofitClient.api.getMascotas(userId)
                 if (resp.isSuccessful && resp.body() != null) {
                     val lista = resp.body()!!.map { it.toMascota() }
-                    db.replaceAllMascotas(lista)   // refresca la caché local
+                    db.replaceAllMascotas(lista)
                     lista
                 } else {
-                    db.getAllMascotas()            // error servidor -> caché
+                    db.getAllMascotas()
                 }
             } catch (e: Exception) {
-                db.getAllMascotas()                // sin conexión -> caché
+                db.getAllMascotas()
             }
+            LoadingDialog.dismiss(supportFragmentManager)
             renderMascotas(pets)
         }
     }
@@ -288,6 +290,7 @@ class Mascotas : AppCompatActivity() {
     private fun guardarMascota(nueva: Mascota, isEdit: Boolean) {
         val userId = UserSession.getId(this)
         val api = nueva.toApi(userId)
+        LoadingDialog.show(supportFragmentManager, if (isEdit) "Guardando cambios..." else "Registrando mascota...")
         lifecycleScope.launch {
             try {
                 val resp = if (isEdit)
@@ -295,12 +298,14 @@ class Mascotas : AppCompatActivity() {
                 else
                     RetrofitClient.api.crearMascota(api)
 
+                LoadingDialog.dismiss(supportFragmentManager)
                 if (resp.isSuccessful) {
-                    loadMascotas()   // recarga desde el servidor (y refresca caché)
+                    loadMascotas()
                 } else {
                     guardarLocal(nueva, isEdit, "Guardado local (error del servidor).")
                 }
             } catch (e: Exception) {
+                LoadingDialog.dismiss(supportFragmentManager)
                 guardarLocal(nueva, isEdit, "Guardado local (sin conexión).")
             }
         }
@@ -320,9 +325,11 @@ class Mascotas : AppCompatActivity() {
                 if (mascota.fotoUri.isNotEmpty()) {
                     File(mascota.fotoUri).delete()
                 }
+                LoadingDialog.show(supportFragmentManager, "Eliminando mascota...")
                 lifecycleScope.launch {
                     try {
                         val resp = RetrofitClient.api.borrarMascota(mascota.id)
+                        LoadingDialog.dismiss(supportFragmentManager)
                         if (resp.isSuccessful) {
                             loadMascotas()
                         } else {
@@ -330,7 +337,8 @@ class Mascotas : AppCompatActivity() {
                             renderMascotas(db.getAllMascotas())
                         }
                     } catch (e: Exception) {
-                        db.deleteMascota(mascota.id)   // offline: borra en caché
+                        LoadingDialog.dismiss(supportFragmentManager)
+                        db.deleteMascota(mascota.id)
                         renderMascotas(db.getAllMascotas())
                     }
                 }
@@ -388,7 +396,11 @@ class Mascotas : AppCompatActivity() {
     }
 
     private fun navigateTo(cls: Class<*>) {
-        startActivity(Intent(this, cls).apply { flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT })
-        overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+        LoadingDialog.show(supportFragmentManager, "Cargando...")
+        findViewById<View>(android.R.id.content).postDelayed({
+            LoadingDialog.dismiss(supportFragmentManager)
+            startActivity(Intent(this, cls).apply { flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT })
+            overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+        }, 500)
     }
 }

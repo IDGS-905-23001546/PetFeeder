@@ -144,15 +144,19 @@ class Equipo : AppCompatActivity() {
                     return@setPositiveButton
                 }
 
-                val dispensador = Dispensador(
-                    nombre = nombre,
-                    codigoUnico = codigo,
-                    ssidWifi = ssid,
-                    estado = "offline"
-                )
-                db.insertDispensador(dispensador)
-                Toast.makeText(this, "Dispensador vinculado. Toca Conectar para sincronizar.", Toast.LENGTH_LONG).show()
-                loadDispensador()
+                LoadingDialog.show(supportFragmentManager, "Vinculando dispensador...")
+                lifecycleScope.launch {
+                    val dispensador = Dispensador(
+                        nombre = nombre,
+                        codigoUnico = codigo,
+                        ssidWifi = ssid,
+                        estado = "offline"
+                    )
+                    db.insertDispensador(dispensador)
+                    LoadingDialog.dismiss(supportFragmentManager)
+                    Toast.makeText(this@Equipo, "Dispensador vinculado. Toca Conectar para sincronizar.", Toast.LENGTH_LONG).show()
+                    loadDispensador()
+                }
             }
             .setNegativeButton("Cancelar", null)
             .show()
@@ -194,9 +198,11 @@ class Equipo : AppCompatActivity() {
         val tvBtn = findViewById<TextView>(R.id.tvBtnConectar)
         tvBtn.text = "Conectando..."
         btnConectarWifi.isEnabled = false
+        LoadingDialog.show(supportFragmentManager, "Conectando al dispositivo...")
 
         lifecycleScope.launch {
             val r = DeviceClient.consultarEstado(this@Equipo)
+            LoadingDialog.dismiss(supportFragmentManager)
             btnConectarWifi.isEnabled = true
             if (r.exito) {
                 db.updateDispensadorEstado(dispensador.id, "activo")
@@ -219,9 +225,13 @@ class Equipo : AppCompatActivity() {
             .setTitle("Desvincular dispositivo")
             .setMessage("¿Desvincular ${dispensador.nombre}? Deberás volver a configurarlo para usarlo.")
             .setPositiveButton("Desvincular") { _, _ ->
-                db.deleteDispensador(dispensador.id)
-                Toast.makeText(this, "Dispositivo desvinculado", Toast.LENGTH_SHORT).show()
-                loadDispensador()
+                LoadingDialog.show(supportFragmentManager, "Desvinculando...")
+                lifecycleScope.launch {
+                    db.deleteDispensador(dispensador.id)
+                    LoadingDialog.dismiss(supportFragmentManager)
+                    Toast.makeText(this@Equipo, "Dispositivo desvinculado", Toast.LENGTH_SHORT).show()
+                    loadDispensador()
+                }
             }
             .setNegativeButton("Cancelar", null)
             .show()
@@ -245,7 +255,11 @@ class Equipo : AppCompatActivity() {
     }
 
     private fun navigateTo(cls: Class<*>) {
-        startActivity(Intent(this, cls).apply { flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT })
-        overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+        LoadingDialog.show(supportFragmentManager, "Cargando...")
+        findViewById<View>(android.R.id.content).postDelayed({
+            LoadingDialog.dismiss(supportFragmentManager)
+            startActivity(Intent(this, cls).apply { flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT })
+            overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+        }, 500)
     }
 }

@@ -209,19 +209,4 @@
 
   </LinearLayout>
 
-    <!-- Botón esférico flotante: abre el módulo de Horarios de Agua -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabAgua"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_marginEnd="20dp"
-        android:layout_marginBottom="90dp"
-        android:src="@drawable/ic_water"
-        android:contentDescription="Horarios de agua"
-        app:backgroundTint="@color/blue_primary"
-        app:tint="@color/white"
-        app:fabSize="normal"
-        app:elevation="8dp" />
-
 </FrameLayout>

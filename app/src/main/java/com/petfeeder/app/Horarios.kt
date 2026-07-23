@@ -38,13 +38,6 @@ class Horarios : AppCompatActivity() {
         setupBottomNav()
         setupAddButtons()
         loadHorarios()
-
-        // Botón flotante -> módulo de Horarios de Agua
-        findViewById<com.google.android.material.floatingactionbutton.FloatingActionButton>(R.id.fabAgua)
-            .setOnClickListener {
-                startActivity(Intent(this, HorariosAgua::class.java))
-                overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
-            }
     }
 
     override fun onResume() {
@@ -57,16 +50,18 @@ class Horarios : AppCompatActivity() {
     private fun loadHorarios() {
         val userId = UserSession.getId(this)
         lifecycleScope.launch {
+            LoadingDialog.show(supportFragmentManager, "Cargando horarios...")
             val horarios: List<Horario> = try {
                 val resp = RetrofitClient.api.getHorarios(userId)
                 if (resp.isSuccessful && resp.body() != null) {
                     val lista = resp.body()!!.map { it.toHorario() }
-                    db.replaceAllHorarios(lista)   // refresca caché
+                    db.replaceAllHorarios(lista)
                     lista
                 } else db.getAllHorarios()
             } catch (e: Exception) {
-                db.getAllHorarios()                // offline -> caché
+                db.getAllHorarios()
             }
+            LoadingDialog.dismiss(supportFragmentManager)
             renderHorarios(horarios)
         }
     }
@@ -186,9 +181,11 @@ class Horarios : AppCompatActivity() {
                 .setTitle("Eliminar horario")
                 .setMessage("¿Eliminar el horario \"${horario.nombre}\"?")
                 .setPositiveButton("Eliminar") { _, _ ->
+                    LoadingDialog.show(supportFragmentManager, "Eliminando horario...")
                     lifecycleScope.launch {
                         try { RetrofitClient.api.borrarHorario(horario.id) } catch (_: Exception) {}
                         db.deleteHorario(horario.id)
+                        LoadingDialog.dismiss(supportFragmentManager)
                         loadHorarios()
                     }
                 }
@@ -296,11 +293,14 @@ class Horarios : AppCompatActivity() {
     /** Crea el horario en la API (petfeeder_db); si falla, lo guarda local. */
     private fun guardarHorario(h: Horario) {
         val userId = UserSession.getId(this)
+        LoadingDialog.show(supportFragmentManager, "Guardando horario...")
         lifecycleScope.launch {
             try {
                 val resp = RetrofitClient.api.crearHorario(h.toApi(userId))
+                LoadingDialog.dismiss(supportFragmentManager)
                 if (!resp.isSuccessful) db.insertHorario(h)
             } catch (e: Exception) {
+                LoadingDialog.dismiss(supportFragmentManager)
                 db.insertHorario(h)
             }
             loadHorarios()
@@ -335,7 +335,11 @@ class Horarios : AppCompatActivity() {
     }
 
     private fun navigateTo(cls: Class<*>) {
-        startActivity(Intent(this, cls).apply { flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT })
-        overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+        LoadingDialog.show(supportFragmentManager, "Cargando...")
+        findViewById<View>(android.R.id.content).postDelayed({
+            LoadingDialog.dismiss(supportFragmentManager)
+            startActivity(Intent(this, cls).apply { flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT })
+            overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+        }, 500)
     }
 }

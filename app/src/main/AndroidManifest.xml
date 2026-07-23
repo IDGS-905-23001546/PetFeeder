@@ -25,13 +25,6 @@
         <activity
             android:name=".Contacto"
             android:exported="false" />
-        <activity
-            android:name=".HorariosAgua"
-            android:exported="false" />
-        <activity
-            android:name=".DispensarAguaManual"
-            android:exported="false" />
-
         <!-- Receiver que dispara el dispensado a la hora de cada horario -->
         <receiver
             android:name=".FeedAlarmReceiver"

@@ -219,10 +219,14 @@ class Principal : AppCompatActivity() {
     }
 
     private fun navigateTo(activityClass: Class<*>) {
-        val intent = Intent(this, activityClass)
-        intent.flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
-        startActivity(intent)
-        overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+        LoadingDialog.show(supportFragmentManager, "Cargando...")
+        findViewById<View>(android.R.id.content).postDelayed({
+            LoadingDialog.dismiss(supportFragmentManager)
+            val intent = Intent(this, activityClass)
+            intent.flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+            startActivity(intent)
+            overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+        }, 500)
     }
 
     private fun setupDispenseButton() {
@@ -233,8 +237,12 @@ class Principal : AppCompatActivity() {
                 .setDuration(80)
                 .withEndAction {
                     v.animate().scaleX(1f).scaleY(1f).setDuration(120).withEndAction {
-                        startActivity(Intent(this, DispensarManual::class.java))
-                        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                        LoadingDialog.show(supportFragmentManager, "Abriendo dispensar...")
+                        v.postDelayed({
+                            LoadingDialog.dismiss(supportFragmentManager)
+                            startActivity(Intent(this, DispensarManual::class.java))
+                            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                        }, 600)
                     }.start()
                 }
                 .start()
