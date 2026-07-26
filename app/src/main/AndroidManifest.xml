@@ -28,6 +28,9 @@
         <activity
             android:name=".Seguridad"
             android:exported="false" />
+        <activity
+            android:name=".Notificaciones"
+            android:exported="false" />
         <!-- Receiver que dispara el dispensado a la hora de cada horario -->
         <receiver
             android:name=".FeedAlarmReceiver"

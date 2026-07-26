@@ -104,4 +104,17 @@ data class CambiarPasswordRequest(
     val passwordNueva: String
 )
 
+// ===== NOTIFICACIONES =====
+
+data class NotificacionApi(
+    val id: Int,
+    val usuarioId: Int,
+    val dispensadorId: Int? = null,
+    val tipo: String = "otro",
+    val titulo: String,
+    val mensaje: String? = null,
+    val leida: Boolean = false,
+    val createdAt: String = ""
+)
+
 

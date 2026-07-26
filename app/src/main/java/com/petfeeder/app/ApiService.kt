@@ -64,4 +64,17 @@ ApiService {
     @PUT("api/auth/cambiar-password")
     suspend fun cambiarPassword(@Body body: CambiarPasswordRequest): Response<RespuestaResponse>
 
+    // ── NOTIFICACIONES ────────────────────────────────────
+    @GET("api/notificaciones/usuario/{usuarioId}")
+    suspend fun getNotificaciones(@Path("usuarioId") usuarioId: Int): Response<List<NotificacionApi>>
+
+    @PUT("api/notificaciones/{id}/leida")
+    suspend fun marcarNotificacionLeida(@Path("id") id: Int): Response<NotificacionApi>
+
+    @PUT("api/notificaciones/usuario/{usuarioId}/marcar-todas")
+    suspend fun marcarTodasLeidas(@Path("usuarioId") usuarioId: Int): Response<RespuestaResponse>
+
+    @DELETE("api/notificaciones/{id}")
+    suspend fun borrarNotificacion(@Path("id") id: Int): Response<RespuestaResponse>
+
 }

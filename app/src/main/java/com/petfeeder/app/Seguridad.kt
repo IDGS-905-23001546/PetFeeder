@@ -21,7 +21,7 @@ class Seguridad : AppCompatActivity() {
         setContentView(R.layout.activity_seguridad)
 
         etPasswordActual = findViewById(R.id.etPasswordActual)
-        etPasswordNueva = findViewById(R.id.etPasswordNueva)
+        etPasswordNueva = findViewById(R.id.etPasswordNuevas)
         etPasswordConfirmar = findViewById(R.id.etPasswordConfirmar)
         btnGuardar = findViewById(R.id.btnGuardar)
 
