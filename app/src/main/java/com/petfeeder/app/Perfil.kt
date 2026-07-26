@@ -53,12 +53,22 @@ class Perfil : AppCompatActivity() {
         }
 
         // Los siguientes siguen como pantallas futuras — placeholder
-        listOf(R.id.menuCompartir, R.id.menuNotificaciones, R.id.menuSeguridad)
+        listOf(R.id.menuCompartir, R.id.menuNotificaciones)
             .forEach { id ->
                 findViewById<LinearLayout>(id).setOnClickListener {
                     Toast.makeText(this, "Proximamente...", Toast.LENGTH_SHORT).show()
                 }
             }
+
+        // Seguridad -> pantalla completa
+        findViewById<LinearLayout>(R.id.menuSeguridad).setOnClickListener {
+            LoadingDialog.show(supportFragmentManager, "Cargando...")
+            findViewById<View>(android.R.id.content).postDelayed({
+                LoadingDialog.dismiss(supportFragmentManager)
+                startActivity(Intent(this, Seguridad::class.java))
+                overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+            }, 500)
+        }
         findViewById<LinearLayout>(R.id.btnCerrarSesion).setOnClickListener {
             confirmarCerrarSesion()
         }

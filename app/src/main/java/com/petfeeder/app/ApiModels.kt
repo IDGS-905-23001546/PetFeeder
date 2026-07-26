@@ -92,8 +92,16 @@ data class DispensacionApi(
     val tipo: String = "manual",
     val nombre: String = "Manual",
     val porcionGramos: Double,
-    val fechaHora: String? = null,   // el servidor pone la fecha si va null
+    val fechaHora: String? = null,
     val estado: String = "ejecutada"
+)
+
+// ===== SEGURIDAD =====
+
+data class CambiarPasswordRequest(
+    val usuarioId: Int,
+    val passwordActual: String,
+    val passwordNueva: String
 )
 
 

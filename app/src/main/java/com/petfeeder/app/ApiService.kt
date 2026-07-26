@@ -8,7 +8,8 @@ import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
 
-interface ApiService {
+interface
+ApiService {
 
     // ── AUTH ──────────────────────────────────────────────
     @POST("api/auth/registro")
@@ -58,5 +59,9 @@ interface ApiService {
 
     @POST("api/dispensaciones")
     suspend fun crearDispensacion(@Body d: DispensacionApi): Response<DispensacionApi>
+
+    // ── SEGURIDAD ─────────────────────────────────────────
+    @PUT("api/auth/cambiar-password")
+    suspend fun cambiarPassword(@Body body: CambiarPasswordRequest): Response<RespuestaResponse>
 
 }
