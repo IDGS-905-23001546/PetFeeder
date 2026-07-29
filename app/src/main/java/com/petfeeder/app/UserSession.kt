@@ -1,19 +1,17 @@
 package com.petfeeder.app
 
 import android.content.Context
+import android.content.Intent
 
-/**
- * Maneja la sesión del usuario guardada en SharedPreferences.
- *
- * Guarda id, nombre y email tras un login exitoso. Sirve como "fuente de verdad"
- * para saber si hay una sesión activa (control de acceso) y para identificar
- * al usuario en las llamadas a la API (mascotas, horarios, dispensaciones...).
- */
 object UserSession {
     private const val PREFS = "pawfeeder_user"
     private const val KEY_ID = "id"
     private const val KEY_NOMBRE = "nombre"
     private const val KEY_EMAIL = "email"
+    private const val KEY_LAST_TOUCH = "last_touch"
+
+    private const val SESSION_TIMEOUT_MS = 15 * 60 * 1000L
+    private const val WARNING_MINUTES = 10
 
     fun getId(ctx: Context): Int =
         ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -27,10 +25,6 @@ object UserSession {
         ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .getString(KEY_EMAIL, "usuario@correo.com") ?: "usuario@correo.com"
 
-    /**
-     * Verdadero solo si hay un usuario logueado (se guardó un id válido).
-     * MainActivity usa esto como compuerta de acceso.
-     */
     fun isLoggedIn(ctx: Context): Boolean =
         getId(ctx) != -1
 
@@ -39,10 +33,41 @@ object UserSession {
             .putInt(KEY_ID, id)
             .putString(KEY_NOMBRE, nombre)
             .putString(KEY_EMAIL, email)
+            .putLong(KEY_LAST_TOUCH, System.currentTimeMillis())
             .apply()
     }
 
     fun clear(ctx: Context) {
         ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().clear().apply()
+    }
+
+    fun touch(ctx: Context) {
+        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .putLong(KEY_LAST_TOUCH, System.currentTimeMillis())
+            .apply()
+    }
+
+    private fun lastTouchMs(ctx: Context): Long =
+        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getLong(KEY_LAST_TOUCH, 0L)
+
+    fun msSinceLastTouch(ctx: Context): Long =
+        System.currentTimeMillis() - lastTouchMs(ctx)
+
+    fun isSessionExpired(ctx: Context): Boolean =
+        isLoggedIn(ctx) && msSinceLastTouch(ctx) > SESSION_TIMEOUT_MS
+
+    fun shouldShowWarning(ctx: Context): Boolean {
+        if (!isLoggedIn(ctx)) return false
+        val elapsed = msSinceLastTouch(ctx)
+        return elapsed > WARNING_MINUTES * 60 * 1000L && elapsed <= SESSION_TIMEOUT_MS
+    }
+
+    fun logoutAndRedirect(ctx: Context) {
+        clear(ctx)
+        val i = Intent(ctx, LoginActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        ctx.startActivity(i)
     }
 }

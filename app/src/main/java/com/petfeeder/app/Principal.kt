@@ -2,11 +2,14 @@ package com.petfeeder.app
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.text.SimpleDateFormat
@@ -16,6 +19,16 @@ class Principal : AppCompatActivity() {
 
     private lateinit var db: PawFeederDatabase
     private var firstLoad = true
+    private var warningShown = false
+    private val sessionHandler = Handler(Looper.getMainLooper())
+    private val sessionCheckInterval = 30_000L
+
+    private val sessionCheckRunnable = object : Runnable {
+        override fun run() {
+            checkSession()
+            sessionHandler.postDelayed(this, sessionCheckInterval)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,11 +43,24 @@ class Principal : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        UserSession.touch(this)
+        warningShown = false
         loadData()
         if (firstLoad) {
             firstLoad = false
             runEntranceAnimations()
         }
+        sessionHandler.postDelayed(sessionCheckRunnable, sessionCheckInterval)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        sessionHandler.removeCallbacks(sessionCheckRunnable)
+    }
+
+    override fun onUserInteraction() {
+        super.onUserInteraction()
+        UserSession.touch(this)
     }
 
     // ── CARGA DE DATOS REALES ────────────────────────────
@@ -185,6 +211,29 @@ class Principal : AppCompatActivity() {
         }
     }
 
+    // ── SESIÓN ───────────────────────────────────────────
+
+    private fun checkSession() {
+        if (UserSession.isSessionExpired(this)) {
+            sessionHandler.removeCallbacks(sessionCheckRunnable)
+            UserSession.logoutAndRedirect(this)
+            finish()
+            return
+        }
+        if (UserSession.shouldShowWarning(this) && !warningShown) {
+            warningShown = true
+            AlertDialog.Builder(this)
+                .setTitle("Sesión próxima a expirar")
+                .setMessage("Por inactividad, tu sesión cerrará en 5 minutos. Toca la pantalla para continuar.")
+                .setPositiveButton("Entendido") { _, _ ->
+                    UserSession.touch(this)
+                    warningShown = false
+                }
+                .setCancelable(false)
+                .show()
+        }
+    }
+
     // ── NAVEGACIÓN Y BOTONES ─────────────────────────────
 
     private fun setupClickListeners() {
@@ -199,6 +248,14 @@ class Principal : AppCompatActivity() {
         // Agregar horario desde inicio
         findViewById<LinearLayout>(R.id.btnAddScheduleFromHome).setOnClickListener {
             navigateTo(Horarios::class.java)
+        }
+        // Botón campana → Notificaciones
+        findViewById<FrameLayout>(R.id.btnNotifications).setOnClickListener {
+            navigateTo(Notificaciones::class.java)
+        }
+        // Card mascota activa → Mascotas
+        findViewById<LinearLayout>(R.id.petCard).setOnClickListener {
+            navigateTo(Mascotas::class.java)
         }
     }
 

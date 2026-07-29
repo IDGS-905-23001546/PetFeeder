@@ -35,6 +35,18 @@
         <receiver
             android:name=".FeedAlarmReceiver"
             android:exported="false" />
+        <!-- Receiver de motivación diaria a las 8 AM -->
+        <receiver
+            android:name=".DailyMotivationReceiver"
+            android:exported="false" />
+        <!-- Receptor de arranque para reprogramar alarmas -->
+        <receiver
+            android:name=".BootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
 
         <!-- Para abrir/compartir el PDF del manual desde la cache -->
         <provider
