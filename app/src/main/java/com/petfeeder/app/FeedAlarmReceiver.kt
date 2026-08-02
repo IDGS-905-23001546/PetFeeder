@@ -53,7 +53,24 @@ class FeedAlarmReceiver : BroadcastReceiver() {
                     )
                 )
 
-                // 3. Reprogramar la misma alarma para dentro de 7 días
+                // 3. Subir la dispensación al servidor (best-effort) para que
+                //    la web y el historial en la nube la vean reflejada.
+                try {
+                    kotlinx.coroutines.runBlocking {
+                        RetrofitClient.api.crearDispensacion(
+                            DispensacionApi(
+                                usuarioId = UserSession.getId(appCtx),
+                                horarioId = id.takeIf { it > 0 },
+                                tipo = "programada",
+                                nombre = nombre,
+                                porcionGramos = cantidad.toDouble(),
+                                estado = estado
+                            )
+                        )
+                    }
+                } catch (_: Exception) {}
+
+                // 4. Reprogramar la misma alarma para dentro de 7 días
                 val proximo = triggerAt + AlarmManager.INTERVAL_DAY * 7
                 val am = appCtx.getSystemService(Context.ALARM_SERVICE) as AlarmManager
                 val pi = FeedScheduler.buildPendingIntent(appCtx, tipo, id, nombre, cantidad, reqCode, proximo)
