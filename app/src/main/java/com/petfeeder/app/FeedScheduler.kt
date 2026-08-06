@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import java.util.Calendar
+import java.util.TimeZone
 
 /**
  * Programa las alarmas para que el dispensador suelte comida a la hora
@@ -16,6 +17,9 @@ import java.util.Calendar
  * borrar, activar/desactivar) y al iniciar la app.
  */
 object FeedScheduler {
+
+    /** Zona horaria del proyecto: León, Guanajuato (México), UTC-6 sin DST. */
+    private val ZONA_MEXICO: TimeZone = TimeZone.getTimeZone("America/Mexico_City")
 
     const val EXTRA_TIPO = "tipo"        // "comida"
     const val EXTRA_ID = "horarioId"
@@ -89,10 +93,10 @@ object FeedScheduler {
         }
     }
 
-    /** Próxima fecha/hora futura que cae en ese día de la semana. */
+    /** Próxima fecha/hora futura que cae en ese día de la semana (hora de México). */
     private fun nextTrigger(calendarDay: Int, hour: Int, minute: Int): Long {
-        val now = Calendar.getInstance()
-        val target = Calendar.getInstance().apply {
+        val now = Calendar.getInstance(ZONA_MEXICO)
+        val target = Calendar.getInstance(ZONA_MEXICO).apply {
             set(Calendar.HOUR_OF_DAY, hour)
             set(Calendar.MINUTE, minute)
             set(Calendar.SECOND, 0)

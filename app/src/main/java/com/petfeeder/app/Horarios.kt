@@ -16,6 +16,8 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.materialswitch.MaterialSwitch
 import kotlinx.coroutines.launch
+import java.util.Calendar
+import java.util.TimeZone
 
 class Horarios : AppCompatActivity() {
 
@@ -248,8 +250,10 @@ class Horarios : AppCompatActivity() {
             etGramos.setText(r.gramosPorComida.toString())
         }
 
-        var selectedHour = 8
-        var selectedMinute = 0
+        // Abre el selector con la hora ACTUAL de México (León, Guanajuato)
+        val ahora = Calendar.getInstance(TimeZone.getTimeZone("America/Mexico_City"))
+        var selectedHour = ahora.get(Calendar.HOUR_OF_DAY)
+        var selectedMinute = ahora.get(Calendar.MINUTE)
 
         btnHora.setOnClickListener {
             TimePickerDialog(this, { _, h, m ->
