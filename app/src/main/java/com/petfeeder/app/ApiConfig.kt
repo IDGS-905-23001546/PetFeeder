@@ -18,7 +18,6 @@ object ApiConfig {
     // URL de Render (produccion). Cambiar cuando crees el servicio en Render.
     // Para desarrollo local, usa "Configurar servidor" desde el login.
     const val RENDER_URL = "https://petfeeder-api-dgjx.onrender.com/"
-
     val DEFAULT_BASE_URL: String = RENDER_URL
 
     private const val PREFS = "pawfeeder_api"
@@ -64,3 +63,4 @@ object ApiConfig {
         return u
     }
 }
+

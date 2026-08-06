@@ -16,6 +16,12 @@ class DispensarManual : AppCompatActivity() {
     private lateinit var db: PawFeederDatabase
     private var amountGrams = 120
     private val presets = listOf(60, 120, 180)
+
+    // Límite de seguridad: nunca se dispensan más de 300 g por orden
+    companion object {
+        const val MAX_GRAMOS = 300
+    }
+
     private var holdHandler: Handler? = null
     private var holdRunnable: Runnable? = null
 
@@ -45,7 +51,7 @@ class DispensarManual : AppCompatActivity() {
             // Porción recomendada por edad + tamaño + peso (por comida)
             val meses = if (mascota.edadMeses > 0) mascota.edadMeses else mascota.edadAnos * 12
             val r = PorcionCalculator.calcular(mascota.tamano, meses, mascota.pesoKg)
-            amountGrams = r.gramosPorComida
+            amountGrams = r.gramosPorComida.coerceIn(10, MAX_GRAMOS)
         }
         updateAmountDisplay()
     }
@@ -93,7 +99,7 @@ class DispensarManual : AppCompatActivity() {
             if (amountGrams > 10) { amountGrams -= 10; updatePresets() }
         }
         btnPlus.setOnClickListener {
-            if (amountGrams < 500) { amountGrams += 10; updatePresets() }
+            if (amountGrams < MAX_GRAMOS) { amountGrams += 10; updatePresets() }
         }
 
         updatePresets()
@@ -135,6 +141,12 @@ class DispensarManual : AppCompatActivity() {
     }
 
     private fun dispensar() {
+        // Guard de seguridad: nunca superar el máximo
+        if (amountGrams > MAX_GRAMOS) {
+            amountGrams = MAX_GRAMOS
+            updateAmountDisplay()
+        }
+
         val mascota = db.getActivaMascota()
         val nombreMascota = mascota?.nombre ?: "tu mascota"
 

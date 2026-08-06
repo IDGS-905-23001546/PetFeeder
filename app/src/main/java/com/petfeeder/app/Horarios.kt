@@ -270,7 +270,8 @@ class Horarios : AppCompatActivity() {
                     Toast.makeText(this, "Selecciona al menos un día", Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
-                val gramos = etGramos.text.toString().toDoubleOrNull() ?: 100.0
+                val gramos = (etGramos.text.toString().toDoubleOrNull() ?: 100.0)
+                    .coerceIn(10.0, DispensarManual.MAX_GRAMOS.toDouble())
                 guardarHorario(
                     Horario(
                         nombre = spinnerNombre.selectedItem.toString(),

@@ -146,6 +146,31 @@
             </LinearLayout>
         </LinearLayout>
 
+        <!-- ===== Tarjeta: Web / QR ===== -->
+        <LinearLayout
+            android:id="@+id/cardWeb"
+            style="@style/ContactoCard"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+            <TextView style="@style/ContactoCardTitle"
+                android:layout_gravity="start"
+                android:text="Visita nuestra web" />
+            <TextView style="@style/ContactoCardSub"
+                android:layout_gravity="start"
+                android:text="Escanea para ver la plataforma PawFeeder desde el navegador" />
+            <ImageView
+                android:id="@+id/imgQrWeb"
+                android:layout_width="190dp"
+                android:layout_height="190dp"
+                android:layout_marginTop="14dp"
+                android:background="@color/white"
+                android:padding="8dp"
+                android:contentDescription="Código QR de la web PawFeeder" />
+            <TextView style="@style/ContactoCardLink"
+                android:layout_marginTop="10dp"
+                android:text="pawfeeder-web.onrender.com" />
+        </LinearLayout>
+
         <!-- ===== Formulario ===== -->
         <TextView
             android:layout_width="wrap_content"

@@ -40,6 +40,15 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("pawfeeder-release.keystore")
+            storePassword = "PawFeeder2026!"
+            keyAlias = "pawfeeder"
+            keyPassword = "PawFeeder2026!"
+        }
+    }
+
     defaultConfig {
         applicationId = "com.petfeeder.app"
         minSdk = 26
@@ -59,6 +68,7 @@ android {
 
     buildTypes {
         release {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -87,6 +97,9 @@ dependencies {
     // Corrutinas (para llamadas asincronas sin congelar la UI)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
+
+    // Generación de QR local (sin servicios externos)
+    implementation(libs.zxing.core)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)

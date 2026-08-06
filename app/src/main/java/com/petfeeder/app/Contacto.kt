@@ -1,12 +1,18 @@
 package com.petfeeder.app
 
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.EncodeHintType
+import com.google.zxing.qrcode.QRCodeWriter
 import java.io.File
+import java.util.EnumMap
 
 /**
  * Módulo "Ayuda y soporte" (Contáctanos). Muestra vías de contacto (correo,
@@ -17,6 +23,7 @@ class Contacto : AppCompatActivity() {
 
     private val correoSoporte = "carlosriosrmz17@gmail.com"
     private val urlGithub = "https://github.com/pawfeeder"
+    private val urlWeb = "https://pawfeeder-web.onrender.com"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,6 +45,8 @@ class Contacto : AppCompatActivity() {
         findViewById<LinearLayout>(R.id.cardCorreo).setOnClickListener { abrirCorreo("", "") }
         findViewById<LinearLayout>(R.id.cardGithub).setOnClickListener { abrirUrl(urlGithub) }
         findViewById<LinearLayout>(R.id.cardManual).setOnClickListener { abrirManual() }
+        findViewById<LinearLayout>(R.id.cardWeb).setOnClickListener { abrirUrl(urlWeb) }
+        generarQrWeb()
 
         // Prellenar con la sesión actual
         findViewById<EditText>(R.id.etNombre).setText(UserSession.getNombre(this))
@@ -92,6 +101,31 @@ class Contacto : AppCompatActivity() {
         } catch (e: Exception) {
             Toast.makeText(this, "No se pudo abrir el manual. Instala un lector de PDF.", Toast.LENGTH_LONG).show()
         }
+    }
+
+    /** Genera el QR que apunta a la web y lo muestra en su tarjeta. */
+    private fun generarQrWeb() {
+        try {
+            val img = findViewById<ImageView>(R.id.imgQrWeb)
+            img.setImageBitmap(crearQr(urlWeb, 512))
+        } catch (e: Exception) {
+            findViewById<ImageView>(R.id.imgQrWeb).visibility = ImageView.GONE
+        }
+    }
+
+    /** Crea un Bitmap QR con el contenido indicado (marca navy sobre fondo blanco). */
+    private fun crearQr(contenido: String, tamano: Int): Bitmap {
+        val hints = EnumMap<EncodeHintType, Any>(EncodeHintType::class.java)
+        hints[EncodeHintType.CHARACTER_SET] = "UTF-8"
+        hints[EncodeHintType.MARGIN] = 1
+        val matrix = QRCodeWriter().encode(contenido, BarcodeFormat.QR_CODE, tamano, tamano, hints)
+        val bmp = Bitmap.createBitmap(tamano, tamano, Bitmap.Config.ARGB_8888)
+        for (x in 0 until tamano) {
+            for (y in 0 until tamano) {
+                bmp.setPixel(x, y, if (matrix[x, y]) Color.rgb(30, 58, 92) else Color.WHITE)
+            }
+        }
+        return bmp
     }
 
     private fun abrirUrl(url: String) {
